@@ -1,0 +1,226 @@
+---
+title: "beta_mave_scores_correlations"
+author: "Yves Greatti"
+date: "2023-09-30"
+output:
+  html_document:
+    css: style.css
+    theme: united
+    code_folding: hide
+    highlight: tango
+    df_print: tibble
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Data Load
+
+
+We are currently focusing on the BRCA1 gene and its association with the breast 
+cancer phenotype.
+Below, we load the variant file for the BRCA1 phenotype, sourced from Genebass:
+[here](https://app.genebass.org/gene/ENSG00000012048/phenotype/categorical-BreastCancer_custom-females--custom?burdenSet=pLoF&phewasOpts=1&resultIndex=variant-manhattan&resultLayout=full)
+
+```{r, include=FALSE}
+
+rm(list = ls())
+library(tidyverse)
+library(ggcorrplot)
+library(plotly)
+library(kableExtra)
+
+
+ouput_path <- "ouputs"
+figure_path <- "figures"
+
+source("plot_lib.R", local = knitr::knit_global())
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data <- as_tibble(read.table("../data/genbass_breastcancer_custom_BRCA1.csv",
+   header = TRUE, sep = ","
+))
+
+data <- data %>%
+   mutate(Protein = str_extract(hgvsp, "(?<=:).+"))
+
+head(data) %>%
+   kbl() %>%
+   kable_paper("hover", full_width = F, html_font = "Cambria")
+```
+### Loading Mave Information
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+mave_data <- as_tibble(read.table("../data/mave_data_brn_v2.csv",
+  header = TRUE, sep = ","
+))
+mave_data <- mave_data %>% filter(gene == "BRCA1") %>%
+  mutate(Protein = str_extract(ProteinChange, "(?<=:).+")) %>% 
+  select(-1)
+
+common_proteins <- intersect(unique(data$Protein), unique(mave_data$Protein))
+data_mave_df <- data %>% inner_join(mave_data, by = "Protein")
+
+head(mave_data) %>%
+  kbl() %>%
+  kable_paper("hover", full_width = F, html_font = "Cambria")
+
+
+```
+Total proteins analyzed:  `r length(common_proteins)`.
+
+### Correlation Between Mave Raw Score and Beta
+
+The association between Mave raw score and Beta for BRCA1 Breast Cancer
+is weak and anti-correlated.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+title_txt <- "Mave Raw Score vs. Beta"
+xlabel <- "Raw Score"
+ylabel <- "Beta"
+x_col <- "raw_score"
+y_col <- "beta"
+xlimits <- c(-3, 1)
+xbreaks <- seq(-3, 1, by = 1)
+ylimits <- c(-1, 5)
+ybreaks <- seq(-1, 5, by = 1)
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_corr = -1.7,
+  y_corr = -1,
+  alpha = 2,
+  raw_score,
+  beta,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 4,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+ggplotly(pt)
+
+```
+### Correlation Between Mave Normalized Raw Score and Beta
+A similar weak correlation is observed between Mave normalized raw
+score and Beta for BRCA1 Breast Cancer.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+title_txt <- "Mave Normalized Raw Score vs. Beta"
+xlabel <- "Normalized Raw Score"
+ylabel <- "Beta"
+x_col <- "norm_raw_score"
+y_col <- "beta"
+xlimits <- c(-3, 1)
+xbreaks <- seq(-3, 1, by = 1)
+ylimits <- c(-1, 5)
+ybreaks <- seq(-1, 5, by = 1)
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_corr = -1.7,
+  y_corr = -1,
+  alpha = 2,
+  norm_raw_score,
+  beta,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 4,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+ggplotly(pt)
+
+```
+
+### Correlation Between Mave Fuse Score and Beta
+The relationship between Mave Fuse score and Beta for BRCA1 Breast Cancer 
+is weak and negatively correlated.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+title_txt <- "Mave Fuse Score vs. Beta"
+xlabel <- "Fuse Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 1)
+xbreaks <- seq(-3, 1, by = 1)
+ylimits <- c(-1, 5)
+ybreaks <- seq(-1, 5, by = 1)
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_corr = -1.7,
+  y_corr = -1,
+  alpha = 2,
+  FUSE_score,
+  beta,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 4,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+ggplotly(pt)
+
+```
+
+### Correlation Between Mave Scaled Study FUSE Score and Beta
+Similar correlation exists between Mave scaled study FUSE score and Beta
+for BRCA1 for Breast Cancer.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+title_txt <- "Mave Scaled Fuse Score vs. Beta"
+xlabel <- "Scaled Fuse Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score_scaled_study"
+y_col <- "beta"
+xlimits <- c(0.2, .8)
+xbreaks <- seq(0.2, 0.8, by = .2)
+ylimits <- c(-1, 5)
+ybreaks <- seq(-1, 5, by = 1)
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_corr = 0.5,
+  y_corr = 5,
+  alpha = 2,
+  FUSE_score_scaled_study,
+  beta,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 4,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+ggplotly(pt)
+
+```
