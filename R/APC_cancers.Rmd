@@ -1,0 +1,99 @@
+---
+title: "APC, Other Cancers - Beta MAVE scores Associations"
+author: "Yves Greatti"
+date: "2023-10-06"
+output:
+  html_document:
+    css: style.css
+    theme: united
+    code_folding: hide
+    highlight: tango
+    df_print: tibble
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+
+rm(list = ls())
+library(tidyverse)
+library(ggcorrplot)
+library(plotly)
+library(kableExtra)
+
+
+ouput_path <- "ouputs"
+figure_path <- "figures"
+
+source("plot_lib.R", local = knitr::knit_global())
+```
+
+# Data Load
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+filename <- "../data/mave_data_brn_v2.csv"
+mave_data <- as_tibble(read.table(filename,
+  header = TRUE, sep = ","
+))
+mave_data <- mave_data %>% filter(gene == "APC") %>%
+  mutate(Protein = str_extract(ProteinChange, "(?<=:).+")) %>% 
+  select(-1)
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+filename <- "../data/APC_ColorectalCancer.csv_2023_10_07_10_08_38.csv"
+
+data <- as_tibble(read.table(filename,
+   header = TRUE, sep = ","
+))
+
+data <- data %>%
+   mutate(Protein = str_extract(hgvsp, "(?<=:).+"))
+
+
+common_proteins <- intersect(unique(data$Protein), unique(mave_data$Protein))
+data_mave_df <- data %>% inner_join(mave_data, by = "Protein")
+
+
+title_txt <- "Mave FUSE Score vs. Beta"
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 4.5)
+xbreaks <- seq(-3, 4.5, by = 1)
+ylimits <- c(-1.5, 6)
+ybreaks <- seq(-1.5, 6, by = 1)
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_corr = 3,
+  y_corr = 2.5,
+  alpha = 2,
+  raw_score,
+  beta,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 4,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+ggplotly(pt)
+```
+
+Total proteins In common:  `r length(common_proteins)`.
+
