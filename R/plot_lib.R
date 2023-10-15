@@ -87,7 +87,7 @@ getCorrelationByCancerTypePlot <- function(df,
     geom_point(size = point_size, alpha = point_alpha) +  
     labs(x = lab_x_txt, y = "Cancer") +
     labs(title = expression_val) +
-    theme_cowplot(12) +
+    theme_cowplot() +
     theme(
       axis.text.x = element_text(size = font_size, face = "bold"),
       axis.text.y = element_text(size = font_size, face = "bold"),

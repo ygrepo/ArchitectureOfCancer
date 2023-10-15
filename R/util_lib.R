@@ -34,11 +34,12 @@ getCorrelation <- function(label,
 }
 
 
-getCancerFiles <- function(directory_path) {
-  # List all files in the directory that match the pattern "BRCA1_*CancerCustom.csv"
+getCancerFiles <- function(directory_path, cancer.pattern) {
+  # List all files in the directory that match the pattern 
+  # "cancer_.pattern_*CancerCustom.csv"
   matching_files <- list.files(
     path = directory_path,
-    pattern = "BRCA1_.*Cancer.csv"
+    pattern = paste0(cancer.pattern, "_.*Cancer.csv")
   )
 
   cancer_filenames <- list()
@@ -46,7 +47,10 @@ getCancerFiles <- function(directory_path) {
   # Iterate over the matching files and build the mapping
   for (file in matching_files) {
     # Extract the cancer label from the filename
-    label <- sub("BRCA1_(.*).csv", "\\1", file)
+    pattern.toextract <- paste0(cancer.pattern, "_(.*).csv")
+    label <- sub(pattern.toextract, "\\1", file)
+    #label <- sub("BRCA1_(.*).csv", "\\1", file)
+    
 
     # Create the full file path
     file_path <- file.path(directory_path, file)
