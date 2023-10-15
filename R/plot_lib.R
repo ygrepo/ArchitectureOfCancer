@@ -1,6 +1,7 @@
 library(ggplot2)
 library(cowplot)
 library(rlang)
+library(ggcorrplot)
 
 get_scatter_plot <- function(df,
                              title_txt,
@@ -42,7 +43,7 @@ get_scatter_plot <- function(df,
     labs(x = xlabel, y = ylabel, title = title_txt) +
     annotate("text",
       x = x_corr, y = y_corr, label = cor_text,
-      hjust = .5, vjust = 1, 
+      hjust = .5, vjust = 1,
       size = annotate_text_size,
       colour = "darkcyan",
       fontface = "bold"
@@ -62,11 +63,43 @@ get_scatter_plot <- function(df,
     ) +
     theme_cowplot()
 
-  if (!is.null(xlimits) & !is.null(xbreaks)) {
+  if (!is.null(xlimits) && !is.null(xbreaks)) {
     pt <- pt + scale_x_continuous(limits = xlimits, breaks = xbreaks)
   }
-  if (!is.null(ylimits) & !is.null(ybreaks)) {
+  if (!is.null(ylimits) && !is.null(ybreaks)) {
     pt <- pt + scale_y_continuous(limits = ylimits, breaks = ybreaks)
+  }
+
+  pt
+}
+
+
+getCorrelationByCancerTypePlot <- function(df,
+                                           lab_x_txt,
+                                           expression_val,
+                                           point_size = 3,
+                                           point_alpha = 0.7,
+                                           font_size = 14,
+                                           legend_font_size = 12,
+                                           xlimits = NULL,
+                                           xbreaks = NULL) {
+  pt <- ggplot(df, aes(x = Cor, y = Cancer, color = Study)) +
+    geom_point(size = point_size, alpha = point_alpha) +  
+    labs(x = lab_x_txt, y = "Cancer") +
+    labs(title = expression_val) +
+    theme_cowplot(12) +
+    theme(
+      axis.text.x = element_text(size = font_size, face = "bold"),
+      axis.text.y = element_text(size = font_size, face = "bold"),
+      axis.title.x = element_text(size = font_size, face = "bold"),
+      axis.title.y = element_text(size = font_size, face = "bold"),
+      plot.title = element_text(size = font_size, face = "bold"),
+      legend.text = element_text(size = legend_font_size),
+      legend.title = element_text(size = legend_font_size),
+    ) 
+
+  if (!is.null(xlimits) && !is.null(xbreaks)) {
+    pt <- pt + scale_x_continuous(limits = xlimits, breaks = xbreaks)
   }
 
   pt
