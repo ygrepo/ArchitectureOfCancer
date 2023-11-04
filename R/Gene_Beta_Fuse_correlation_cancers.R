@@ -18,7 +18,7 @@ source("R/util_lib.R")
 
 
 
-dt <- fread("data/gene-phewas-exomes_ENSG00000095002_MSH2.csv")
+dt <- fread("data/gene-phewas-exomes_ENSG00000012048_BRCA1_2023_09_30_10_19_56.csv")
 filter_condition <- function(x) grepl("cancer|carcinoma|melanoma", 
                                       x, ignore.case = TRUE)
 filtered_dt <- dt[filter_condition(Description)]
@@ -26,7 +26,7 @@ filtered_dt <- dt[filter_condition(Description)]
 # Load MAVE data ----
 
 gene_target <- "MSH2"
-mave_data <- as_tibble(read.table("data/mave_data_brn_v2.csv",
+mave_data <- as_tibble(read.table("data/mave_data_brn_v3.csv",
   header = TRUE, sep = ","
 )) %>%
   filter(gene == gene_target)
@@ -41,15 +41,19 @@ unique(mave_data$id)
 # df <- mave_data %>%
 #   filter(Mutation == "p.Pro34Leu")
 
-mave_data <- mave_data %>% select(id, gene, FUSE_score, Mutation)
+mave_data <- mave_data %>% select(id, 
+                                  gene, 
+                                  FUSE_score, 
+                                  Mutation)
 studies <- unique(mave_data$id)
 
 cancer_filenames <- getCancerFiles("data/t0.01", "MSH2")
 
 corr_dt <- data.table(
-  Study = character(0), # Numeric column (replace with your desired data type)
-  Cancer = character(0), # Character column (replace with your desired data type)
-  Cor = numeric(0) # Logical column (replace with your desired data type)
+  Study = character(0), 
+  Cancer = character(0), 
+  ClinVar_Signif = character(0),
+  Cor = numeric(0)
 )
 
 

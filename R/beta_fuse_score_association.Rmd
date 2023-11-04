@@ -1,0 +1,438 @@
+---
+title: "Gene, Cancers Burden - Beta FUSE scores Associations"
+author: "Yves Greatti"
+date: "2023-10-30"
+output:
+  html_document:
+    css: style.css
+    theme: united
+    code_folding: hide
+    highlight: tango
+    df_print: tibble
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, include=FALSE}
+rm(list = ls())
+library(tidyverse)
+library(ggcorrplot)
+library(plotly)
+library(kableExtra)
+
+
+ouput_path <- "ouputs"
+figure_path <- "figures"
+```
+
+```{r, include=FALSE}
+
+source("plot_lib.R", local = knitr::knit_global())
+source("util_lib.R", local = knitr::knit_global())
+```
+
+# Loading Mave Information ...
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+mave_data <- readMaveData("../data/mave_data_brn_v3.csv") %>%
+  mutate(
+    ClinVarLabel = case_when(
+      str_detect(ClinVar.Variant.Category, "US") ~ "US",
+      str_detect(ClinVar.Variant.Category, "LB/B") ~ "LB/B",
+      str_detect(ClinVar.Variant.Category, "LP/P") ~ "LP/P",
+      TRUE ~ ClinVar.Variant.Category
+    )
+  )
+
+mave_data$ClinVarLabel <- trimws(mave_data$ClinVarLabel)
+
+mave_data$ClinVarLabel <- factor(mave_data$ClinVarLabel)
+
+mave_data %>%
+  group_by(ClinVar.ClinicalSignificance, ClinVar.Variant.Category, ClinVarLabel) %>%
+  select(ClinVar.ClinicalSignificance, ClinVar.Variant.Category, ClinVarLabel) %>%
+  unique() %>%
+  print_html_df(caption_txt = "Clinvar Significance, Categories And Label")
+```
+
+
+## BRCA1 burden for Lung Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gene_target <- "BRCA1"
+
+cancer_filenames <- getCancerFiles("../data/t0.01", gene_target)
+data <- as_tibble(read.table(cancer_filenames[["BreastCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange") %>%
+  mutate(ClinVarLabelP = if_else(ClinVarLabel == "LP/P", ProteinChange, ""))
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Compute correlation and p-value
+studies.data <- getDataByStudy(data_mave_df)
+print(unique(data_mave_df$id))
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Compute correlation and p-value
+study <- "urn:mavedb:00000003-a-2"
+study.data  <- studies.data$Data[studies.data$Study == study][[1]]
+res_corr <- get_beta_FUSE_correlation_p_value(study.data)
+```
+Total variants in common:  `r length(common_variants)`.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+study_abb <-  gsub("urn:mavedb:", "", study)
+title_txt <- bquote(paste(
+  "BRCA1, Breast Cancer, study=", .(study_abb), ", ", beta, " vs. FUSE Score, ", rho, "=",
+  .(round(res_corr$corr, 2)), " ,p=", .(round(res_corr$pval, 4))
+))
+
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 3)
+xbreaks <- seq(-3, 3, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
+
+pt <- getScatterPlot(study.data,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col,
+  y_col,
+  alpha = 3,
+  point_size = 1,
+  point_color = "#00AFBB",
+  title_font_size = 6,
+  x_y_font_size = 12,
+  annotate_text_size = 2,
+  annotate.point = TRUE,
+  xlimits = NULL,
+  xbreaks = NULL,
+  ylimits = NULL,
+  ybreaks = NULL
+)
+
+pt
+```
+
+
+## BRCA1 burden for Colorectal Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data <- as_tibble(read.table(cancer_filenames[["ColorectalCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+# Compute correlation and p-value
+res_corr <- get_beta_FUSE_correlation_p_value(data_mave_df)
+```
+
+Total variants in common:  `r length(common_variants)`.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# Compute correlation and p-value
+res <- get_beta_FUSE_correlation_p_value(data_mave_df)
+
+title_txt <- bquote(paste(
+  "BRCA1, Colorectal Cancer, ", beta, " vs. FUSE Score, ", rho, "=",
+  .(round(res$corr, 2)), " ,p=", .(round(res$pval, 4))
+))
+
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 3)
+xbreaks <- seq(-3, 3, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
+
+pt <- getScatterPlot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col,
+  y_col,
+  alpha = 3,
+  point_size = 1,
+  point_color = "#00AFBB",
+  title_font_size = 12,
+  x_y_font_size = 12,
+  annotate_text_size = 2,
+  xlimits = NULL,
+  xbreaks = NULL,
+  ylimits = NULL,
+  ybreaks = NULL
+)
+
+pt
+```
+
+
+## MSH2 burden for Colon Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gene_target <- "MSH2"
+
+cancer_filenames <- getCancerFiles("../data/t0.01", gene_target)
+
+data <- as_tibble(read.table(cancer_filenames[["ColonCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+```
+Total variants in common:  `r length(common_variants)`.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+# Compute correlation and p-value
+res <- get_beta_FUSE_correlation_p_value(data_mave_df)
+
+title_txt <- bquote(paste(
+  "MSH2, Colon Cancer,", rho, "=",
+  .(round(res$corr, 2)), ",p=", .(round(res$pval, 4))
+))
+
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 2)
+xbreaks <- seq(-3, 2, by = 1)
+ylimits <- c(-1, 10)
+ybreaks <- seq(-1, 10, by = 1)
+
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col = x_col,
+  y_col = y_col,
+  alpha = 2,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 2,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+pt
+```
+
+## MSH2 burden for Colorectal Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data <- as_tibble(read.table(cancer_filenames[["ColorectalCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+```
+Total variants in common:  `r length(common_variants)`.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+# Compute correlation and p-value
+res <- get_beta_FUSE_correlation_p_value(data_mave_df)
+
+title_txt <- bquote(paste(
+  "MSH2, Colorectal Cancer,", rho, "=",
+  .(round(res$corr, 2)), ",p=", .(round(res$pval, 4))
+))
+
+
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 1)
+xbreaks <- seq(-3, 1, by = 1)
+ylimits <- c(-1, 8)
+ybreaks <- seq(-1, 8, by = 1)
+
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col = x_col,
+  y_col = y_col,
+  alpha = 2,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 2,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+pt
+```
+
+## MSH2 burden for FH Bowel Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data <- as_tibble(read.table(cancer_filenames[["FHBowelCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+```
+Total variants in common:  `r length(common_variants)`.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+# Compute correlation and p-value
+res <- get_beta_FUSE_correlation_p_value(data_mave_df)
+
+title_txt <- bquote(paste(
+  "MSH2, FH Bowel Cancer,", rho, "=",
+  .(round(res$corr, 2)), ",p=", .(round(res$pval, 4))
+))
+
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-2.5, 2)
+xbreaks <- seq(-2.5, 2, by = 1)
+ylimits <- c(-1, 5)
+ybreaks <- seq(-1, 5, by = 1)
+
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col = x_col,
+  y_col = y_col,
+  alpha = 2,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 14,
+  annotate_text_size = 2,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+pt
+```
+
+## MSH2 burden for Large Bowel Cancer
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data <- as_tibble(read.table(cancer_filenames[["LargeBowelCancer"]],
+  header = TRUE, sep = ","
+))
+
+data <- data %>%
+  mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+"))
+
+common_variants <- intersect(
+  unique(data$ProteinChange),
+  unique(mave_data$ProteinChange)
+)
+```
+Total variants in common:  `r length(common_variants)`.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_mave_df <- data %>%
+  inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+# Compute correlation and p-value
+res <- get_beta_FUSE_correlation_p_value(data_mave_df)
+
+title_txt <- bquote(paste(
+  "MSH2, Large Bowel Cancer,", rho, "=",
+  .(round(res$corr, 2)), ",p=", .(round(res$pval, 4))
+))
+xlabel <- "FUSE Score"
+ylabel <- "Beta"
+x_col <- "FUSE_score"
+y_col <- "beta"
+xlimits <- c(-3, 1)
+xbreaks <- seq(-3, 1, by = 1)
+ylimits <- c(-1, 10)
+ybreaks <- seq(-1, 10, by = 1)
+
+pt <- get_scatter_plot(data_mave_df,
+  title_txt,
+  xlabel,
+  ylabel,
+  x_col = x_col,
+  y_col = y_col,
+  alpha = 2,
+  point_size = 2,
+  point_color = "#00AFBB",
+  font_size = 12,
+  annotate_text_size = 2,
+  xlimits = xlimits,
+  xbreaks = xbreaks,
+  ylimits = ylimits,
+  ybreaks = ybreaks
+)
+pt
+```

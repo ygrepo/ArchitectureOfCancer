@@ -35,8 +35,7 @@ getCorrelation <- function(label,
 
 
 getCancerFiles <- function(directory_path, cancer.pattern) {
-  # List all files in the directory that match the pattern 
-  # "cancer_.pattern_*CancerCustom.csv"
+  # List all files in the directory that match the pattern cancer.pattern
   matching_files <- list.files(
     path = directory_path,
     pattern = paste0(cancer.pattern, "_.*Cancer.csv")
@@ -49,8 +48,8 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
     # Extract the cancer label from the filename
     pattern.toextract <- paste0(cancer.pattern, "_(.*).csv")
     label <- sub(pattern.toextract, "\\1", file)
-    #label <- sub("BRCA1_(.*).csv", "\\1", file)
-    
+    # label <- sub("BRCA1_(.*).csv", "\\1", file)
+
 
     # Create the full file path
     file_path <- file.path(directory_path, file)
@@ -60,4 +59,59 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
   }
 
   cancer_filenames
+}
+
+
+readMaveData <- function(file.path_val, gene_target = NULL) {
+  df <- as_tibble(read.table(file.path_val,
+    header = TRUE, sep = ","
+  )) %>%
+    mutate(ProteinChange = str_extract(ProteinChange, "(?<=:).+"))
+
+  if (!is.null(gene_target)) {
+    df <- df %>% filter(gene == gene_target)
+  }
+
+  return(df)
+}
+
+get_beta_FUSE_correlation_p_value <- function(df, method_txt = "spearman") {
+  cor_test <- cor.test(df$beta, df$FUSE_score, method = method_txt)
+  cor_val <- cor_test$estimate
+  p_val <- cor_test$p.value
+  return(list(corr = cor_val, pval = p_val))
+}
+
+
+getDataByStudy <- function(df) {
+  result <- tibble(Study = character(), Data = list())
+  
+  for (study in unique(df$id)) {
+    # Extract ID and Data for the current iteration
+    current_data <- df %>% filter(id == study)
+    
+    # Create a new row with ID and Data
+    new_row <- tibble(Study = as.character(study), Data = list(current_data))
+    
+    # Bind the new row to the result tibble
+    result <- bind_rows(result, new_row)
+  }
+  
+  return(result)
+}
+
+print_html_df <- function(df,
+                          caption_txt,
+                          file_path = NULL) {
+  rep <- df %>%
+    kbl(caption = caption_txt) %>%
+    kable_classic(
+      bootstrap_options = c("stripped", "condensed", "responsive"),
+      full_width = F,
+      html_font = "Arial"
+    )
+  if (!is.null(file_path)) {
+    rep %>% save_kable(file = file_path, self_contained = TRUE)
+  }
+  return(rep)
 }
