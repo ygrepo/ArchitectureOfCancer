@@ -51,7 +51,8 @@ print(length(unique(common_variants)))
 
 data <- data %>%
   inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange") %>%
-  mutate(ClinVarLabelP = if_else(ClinVarLabel == "LP/P", ProteinChange, "")) %>%
+  mutate(ClinVarLabelP = if_else(ClinVarLabel %in% c("LB/B", "LP/P"), 
+                                 ProteinChange, "")) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ClinVarLabelP))
 
 
@@ -63,7 +64,9 @@ studies.data <- getDataByStudy(data)
 # BRCA1, Breast Cancer, 00000003-a-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000003-a-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]] %>% 
+  filter_benign_pathogenic()
+
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -79,10 +82,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 5)
-ybreaks <- seq(-1.1, 5, by = 1)
+xlimits <- c(-1.5, 1.5)
+xbreaks <- seq(-1.5, 1.5, by = 1)
+ylimits <- c(-1.5, 4.5)
+ybreaks <- seq(-1.5, 4.5, by = 1)
 
 pt <- getScatterPlot(study.data,
   title_txt,
@@ -91,27 +94,30 @@ pt <- getScatterPlot(study.data,
   x_col,
   y_col,
   alpha = 3,
-  point_size = 1,
+  point_size = 2,
   point_color = "#00AFBB",
-  title_font_size = 8,
+  title_font_size = 12,
   x_y_font_size = 12,
-  annotate_text_size = 2,
+  annotate_text_size = 4,
   annotate.point = TRUE,
   xlimits = xlimits,
   xbreaks = xbreaks,
   ylimits = ylimits,
   ybreaks = ybreaks
 )
-pt
-filename <- "20231104_00000003-a-2_beta_fuse.png"
+pt <- pt + theme(legend.position = "top")
+filename <- "20231108_00000003-a-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
+#graph2png(pt, file = file_path, dpi = 600, aspectr = 1)
 
 
 # BRCA1, Breast Cancer, 00000003-b-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000003-b-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]]%>% 
+  filter_benign_pathogenic()
+
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -127,39 +133,43 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 5)
-ybreaks <- seq(-1.1, 5, by = 1)
-
+xlimits <- c(-1.5, 1.5)
+xbreaks <- seq(-1.5, 1.5, by = 1)
+ylimits <- c(-1.5, 4.5)
+ybreaks <- seq(-1.5, 4.5, by = 1)
 
 pt <- getScatterPlot(study.data,
-  title_txt,
-  xlabel,
-  ylabel,
-  x_col,
-  y_col,
-  alpha = 3,
-  point_size = 1,
-  point_color = "#00AFBB",
-  title_font_size = 8,
-  x_y_font_size = 12,
-  annotate_text_size = 2,
-  annotate.point = TRUE,
-  xlimits = xlimits,
-  xbreaks = xbreaks,
-  ylimits = ylimits,
-  ybreaks = ybreaks
+                     title_txt,
+                     xlabel,
+                     ylabel,
+                     x_col,
+                     y_col,
+                     alpha = 3,
+                     point_size = 2,
+                     point_color = "#00AFBB",
+                     title_font_size = 12,
+                     x_y_font_size = 12,
+                     annotate_text_size = 4,
+                     annotate.point = TRUE,
+                     xlimits = xlimits,
+                     xbreaks = xbreaks,
+                     ylimits = ylimits,
+                     ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_00000003-b-2_beta_fuse.png"
+
+filename <- "20231108_00000003-b-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
+
 
 # BRCA1, Breast Cancer, 00000097-0-1 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000097-0-1"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]]%>% 
+  filter_benign_pathogenic()
+
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -175,10 +185,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 5)
-ybreaks <- seq(-1.1, 5, by = 1)
+xlimits <- c(-1.5, 1.5)
+xbreaks <- seq(-1.5, 1.5, by = 1)
+ylimits <- c(-1.5, 4.5)
+ybreaks <- seq(-1.5, 4.5, by = 1)
 
 
 pt <- getScatterPlot(study.data,
@@ -192,22 +202,26 @@ pt <- getScatterPlot(study.data,
   point_color = "#00AFBB",
   title_font_size = 8,
   x_y_font_size = 12,
-  annotate_text_size = 2,
+  annotate_text_size = 4,
   annotate.point = TRUE,
   xlimits = xlimits,
   xbreaks = xbreaks,
   ylimits = ylimits,
   ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_00000097-0-1_beta_fuse.png"
+filename <- "20231108_00000097-0-1_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
+
 
 # BRCA1, Breast Cancer, 00000081-a-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000081-a-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]] %>% 
+  filter_benign_pathogenic()
+
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -223,10 +237,11 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 5)
-ybreaks <- seq(-1.1, 5, by = 1)
+
+xlimits <- c(-1.5, 1.5)
+xbreaks <- seq(-1.5, 1.5, by = 1)
+ylimits <- c(-1.5, 4.5)
+ybreaks <- seq(-1.5, 4.5, by = 1)
 
 
 pt <- getScatterPlot(study.data,
@@ -240,7 +255,7 @@ pt <- getScatterPlot(study.data,
   point_color = "#00AFBB",
   title_font_size = 8,
   x_y_font_size = 12,
-  annotate_text_size = 2,
+  annotate_text_size = 4,
   annotate.point = TRUE,
   # xlimits = NULL,
   # xbreaks = NULL,
@@ -251,10 +266,12 @@ pt <- getScatterPlot(study.data,
   ylimits = ylimits,
   ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_00000081-a-2_beta_fuse.png"
+
+filename <- "20231108_00000081-a-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
 
 
 # BRCA1, Colorectal Cancer ----
@@ -274,7 +291,8 @@ print(length(unique(common_variants)))
 
 data <- data %>%
   inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange") %>%
-  mutate(ClinVarLabelP = if_else(ClinVarLabel == "LP/P", ProteinChange, "")) %>%
+  mutate(ClinVarLabelP = if_else(ClinVarLabel %in% c("LB/B", "LP/P"), 
+                                 ProteinChange, "")) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ClinVarLabelP))
 
 
@@ -286,7 +304,8 @@ studies.data <- getDataByStudy(data)
 # BRCA1, Colorectal Cancer, 00000003-a-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000003-a-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]]%>% 
+  filter_benign_pathogenic()
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -302,10 +321,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 6)
-ybreaks <- seq(-1.1, 6, by = 1)
+xlimits <- c(-2, 2)
+xbreaks <- seq(-2, 2, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
 
 pt <- getScatterPlot(study.data,
                      title_txt,
@@ -318,7 +337,7 @@ pt <- getScatterPlot(study.data,
                      point_color = "#00AFBB",
                      title_font_size = 8,
                      x_y_font_size = 12,
-                     annotate_text_size = 2,
+                     annotate_text_size = 4,
                      annotate.point = TRUE,
                      # xlimits = NULL,
                      # xbreaks = NULL,
@@ -330,16 +349,18 @@ pt <- getScatterPlot(study.data,
                      ylimits = ylimits,
                      ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_colorectal_00000003-a-2_beta_fuse.png"
+filename <- "20231108_colorectal_00000003-a-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
 
 
 # BRCA1, Colorectal Cancer, 00000003-b-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000003-b-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]] %>% 
+  filter_benign_pathogenic()
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -355,11 +376,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 6)
-ybreaks <- seq(-1.1, 6, by = 1)
-
+xlimits <- c(-2, 2)
+xbreaks <- seq(-2, 2, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
 
 pt <- getScatterPlot(study.data,
                      title_txt,
@@ -372,22 +392,25 @@ pt <- getScatterPlot(study.data,
                      point_color = "#00AFBB",
                      title_font_size = 8,
                      x_y_font_size = 12,
-                     annotate_text_size = 2,
+                     annotate_text_size = 4,
                      annotate.point = TRUE,
                      xlimits = xlimits,
                      xbreaks = xbreaks,
                      ylimits = ylimits,
                      ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_colorectal_00000003-b-2_beta_fuse.png"
+filename <- "20231108_colorectal_00000003-b-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
+
 
 # BRCA1, Colorectal Cancer, 00000097-0-1 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000097-0-1"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]]  %>% 
+  filter_benign_pathogenic()
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -403,10 +426,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 6)
-ybreaks <- seq(-1.1, 6, by = 1)
+xlimits <- c(-2, 2)
+xbreaks <- seq(-2, 2, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
 
 pt <- getScatterPlot(study.data,
                      title_txt,
@@ -419,22 +442,24 @@ pt <- getScatterPlot(study.data,
                      point_color = "#00AFBB",
                      title_font_size = 8,
                      x_y_font_size = 12,
-                     annotate_text_size = 2,
+                     annotate_text_size = 4,
                      annotate.point = TRUE,
                      xlimits = xlimits,
                      xbreaks = xbreaks,
                      ylimits = ylimits,
                      ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_colorectal_00000097-0-1_beta_fuse.png"
+filename <- "20231108_colorectal_00000097-0-1_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
 
 # BRCA1, Colorectal Cancer, 00000081-a-2 ----
 # Compute correlation and p-value
 study <- "urn:mavedb:00000081-a-2"
-study.data <- studies.data$Data[studies.data$Study == study][[1]]
+study.data <- studies.data$Data[studies.data$Study == study][[1]]%>% 
+  filter_benign_pathogenic()
 res_corr <- get_beta_FUSE_correlation_p_value(study.data)
 
 
@@ -450,10 +475,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-2, 3)
-xbreaks <- seq(-2, 3, by = 1)
-ylimits <- c(-1.1, 6)
-ybreaks <- seq(-1.1, 6, by = 1)
+xlimits <- c(-2, 2)
+xbreaks <- seq(-2, 2, by = 1)
+ylimits <- c(-2, 5)
+ybreaks <- seq(-2, 5, by = 1)
 
 
 pt <- getScatterPlot(study.data,
@@ -467,7 +492,7 @@ pt <- getScatterPlot(study.data,
                      point_color = "#00AFBB",
                      title_font_size = 8,
                      x_y_font_size = 12,
-                     annotate_text_size = 2,
+                     annotate_text_size = 4,
                      annotate.point = TRUE,
                      # xlimits = NULL,
                      # xbreaks = NULL,
@@ -478,8 +503,9 @@ pt <- getScatterPlot(study.data,
                      ylimits = ylimits,
                      ybreaks = ybreaks
 )
+pt <- pt + theme(legend.position = "top")
 pt
-filename <- "20231104_colorectal_00000081-a-2_beta_fuse.png"
+filename <- "20231108_colorectal_00000081-a-2_beta_fuse.png"
 file_path <- paste0(figure_path, filename)
-graph2png(pt, file = file_path, dpi = 600, aspectr = 1.2)
+ggsave(file_path, dpi = 600, bg="white")
 

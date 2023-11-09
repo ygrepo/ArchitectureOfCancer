@@ -85,19 +85,26 @@ get_beta_FUSE_correlation_p_value <- function(df, method_txt = "spearman") {
 
 getDataByStudy <- function(df) {
   result <- tibble(Study = character(), Data = list())
-  
+
   for (study in unique(df$id)) {
     # Extract ID and Data for the current iteration
     current_data <- df %>% filter(id == study)
-    
+
     # Create a new row with ID and Data
     new_row <- tibble(Study = as.character(study), Data = list(current_data))
-    
+
     # Bind the new row to the result tibble
     result <- bind_rows(result, new_row)
   }
-  
+
   return(result)
+}
+
+
+filter_benign_pathogenic <- function(df) {
+  df <- df %>%
+    filter(ClinVarLabel %in% c("LB/B", "LP/P"))
+  return(df)
 }
 
 print_html_df <- function(df,

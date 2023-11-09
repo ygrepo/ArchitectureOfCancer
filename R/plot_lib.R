@@ -46,7 +46,9 @@ getScatterPlot <- function(df,
 
   if (annotate.point) {
     #pt <- pt + geom_text(aes(label = ClinVarLabelP), size = annotate_text_size) 
-    pt <- pt + geom_text_repel(aes(label = ClinVarLabelP), size = annotate_text_size) 
+    pt <- pt + geom_text_repel(aes(label = ClinVarLabelP), 
+                               size = annotate_text_size,
+                               max.overlaps = 50) 
     #      geom_text_repel(aes(label = ClinVarLabelP))
   } else {
     pt <- pt + geom_text_repel(aes(label = ClinVarLabel))
@@ -56,7 +58,9 @@ getScatterPlot <- function(df,
     pt <- pt + scale_x_continuous(limits = xlimits, breaks = xbreaks)
   }
   if (!is.null(ylimits) && !is.null(ybreaks)) {
-    pt <- pt + scale_y_continuous(limits = ylimits, breaks = ybreaks)
+    pt <- pt + scale_y_continuous(limits = ylimits, 
+                                  breaks = ybreaks,
+                                  expand = c(0.2,0))
   }
 
   return(pt)
