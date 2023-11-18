@@ -24,12 +24,13 @@ getScatterPlot <- function(df,
                            ybreaks = NULL) {
   pt <- ggplot(df, aes(x = .data[[x_col]], y = .data[[y_col]])) +
     geom_point(
-      aes(color = ClinVarLabel),
-      size = point_size,
-      alpha = alpha
+      aes(color = ClinVar.Variant.Category,
+      size = LOG10AF,
+      alpha = alpha)
     ) +
+    scale_size_continuous(name = "-Log10(AF)", range = c(1, 10)) +
     labs(x = xlabel, y = ylabel, title = title_txt) +
-    theme_cowplot() +
+    guides(alpha = guide_none()) +
     theme(
       plot.title = element_text(
         color = "black",
@@ -42,8 +43,9 @@ getScatterPlot <- function(df,
       panel.grid.minor = element_blank(),
       panel.background = element_blank(),
       axis.line = element_line(colour = "black")
-    )
-
+    ) +
+  theme_cowplot() 
+    
   if (annotate.point) {
     #pt <- pt + geom_text(aes(label = ClinVarLabelP), size = annotate_text_size) 
     pt <- pt + geom_text_repel(aes(label = ClinVarLabelP), 
@@ -54,15 +56,22 @@ getScatterPlot <- function(df,
     pt <- pt + geom_text_repel(aes(label = ClinVarLabel))
   }
 
-  if (!is.null(xlimits) && !is.null(xbreaks)) {
-    pt <- pt + scale_x_continuous(limits = xlimits, breaks = xbreaks)
+  if (!is.null(xbreaks)) {
+    pt <- pt + scale_x_continuous(breaks = xbreaks)
   }
-  if (!is.null(ylimits) && !is.null(ybreaks)) {
+  if (!is.null(xlimits)) {
+    pt <- pt + xlim(xlimits)
+  }
+  
+  if (!is.null(ybreaks)) {
     pt <- pt + scale_y_continuous(limits = ylimits, 
                                   breaks = ybreaks,
                                   expand = c(0.2,0))
   }
-
+  if (!is.null(ylimits)) {
+    pt <- pt + ylim(ylimits)
+  }
+  
   return(pt)
 }
 
