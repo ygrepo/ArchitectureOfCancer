@@ -13,6 +13,8 @@ getScatterPlot <- function(df,
                            y_col,
                            size_col,
                            size_name,
+                           legend_size_breaks,
+                           legend_size_labels,
                            alpha = 1,
                            point_size = 1,
                            point_color = "#00AFBB",
@@ -33,7 +35,12 @@ getScatterPlot <- function(df,
         alpha = alpha
       )
     ) +
-    scale_size_continuous(name = size_name, range = c(1, 10)) +
+    scale_size_continuous(
+      name = size_name,
+      range = c(1, 10),
+      breaks = legend_size_breaks,
+      labels = legend_size_labels
+    ) +
     labs(x = xlabel, y = ylabel, title = title_txt) +
     guides(alpha = guide_none()) +
     theme(
@@ -72,7 +79,7 @@ getScatterPlot <- function(df,
   if (!is.null(ybreaks)) {
     pt <- pt + scale_y_continuous(
       breaks = ybreaks
-#      expand = c(0.2, 0)
+      #      expand = c(0.2, 0)
     )
   }
   if (!is.null(ylimits)) {

@@ -34,10 +34,10 @@ mave_data %>%
   unique() %>%
   print_html_df(caption_txt = "Clinvar Significance, Categories And Label")
 
-gene_target <- "BRCA1"
+gene_target <- "MSH2"
 pval_threshold <- 0.01
 
-cancer_filenames <- getCancerFiles("data/BRCA1", gene_target)
+cancer_filenames <- getCancerFiles("data/MSH2", gene_target)
 
 
 # Breast Cancer ----
@@ -115,7 +115,7 @@ data <- as_tibble(read.table(cancer_filenames[["ColorectalCancer"]],
 )) %>%
   mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
   filter(pval < pval_threshold) %>%
-  mutate(LOG10PVAL = -log10(pval)) %>%
+  mutate(LOG10PVAL = round(-log10(pval), 1)) %>%
   mutate(LOG10AF = -log10(allele_frequency)) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
 
@@ -149,7 +149,8 @@ xlimits <- c(-3, 2)
 xbreaks <- seq(-3, 2, by = 1)
 ylimits <- c(3, 10)
 ybreaks <- seq(3, 10, by = 1)
-
+legend_size_breaks <- c(1.5, 2, 2.1, 2.6, 3.1, 3.8)
+legend_size_labels <- c("1.5", "2", "2.1", "2.6", "3.1", "3.8")
 
 pt <- getScatterPlot(data,
   title_txt,
@@ -159,6 +160,8 @@ pt <- getScatterPlot(data,
   y_col,
   size_col = "LOG10PVAL",
   size_name = "-LOG10(PVAL)",
+  legend_size_breaks,
+  legend_size_labels,
   alpha = 3,
   point_size = 2,
   point_color = "#00AFBB",
