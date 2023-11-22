@@ -33,10 +33,10 @@ mave_data %>%
   unique() %>%
   print_html_df(caption_txt = "Clinvar Significance, Categories And Label")
 
-gene_target <- "CALM1"
+gene_target <- "BRCA1"
 pval_threshold <- 0.05
 
-cancer_filenames <- getCancerFiles("data/CALM1", gene_target)
+cancer_filenames <- getCancerFiles("data/BRCA1", gene_target)
 
 # Breast Cancer ----
 data <- as_tibble(read.table(cancer_filenames[["BreastCancer"]],
