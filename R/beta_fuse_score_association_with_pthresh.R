@@ -1,10 +1,11 @@
-rm(list = ls())
+
 library(tidyverse)
 library(ggcorrplot)
 library(plotly)
 library(kableExtra)
 library(export)
 
+rm(list = ls())
 
 data_path <- "outputs/data"
 figure_path <- "outputs/figures/"
@@ -34,9 +35,10 @@ mave_data %>%
   print_html_df(caption_txt = "Clinvar Significance, Categories And Label")
 
 gene_target <- "BRCA1"
-pval_threshold <- 0.05
+pval_threshold <- 0.01
 
 cancer_filenames <- getCancerFiles("data/BRCA1", gene_target)
+
 
 # Breast Cancer ----
 data <- as_tibble(read.table(cancer_filenames[["BreastCancer"]],
@@ -45,6 +47,7 @@ data <- as_tibble(read.table(cancer_filenames[["BreastCancer"]],
   mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
   filter(pval < pval_threshold) %>%
   mutate(LOG10AF = -log10(allele_frequency)) %>%
+  mutate(LOG10PVAL = -log10(pval)) %>%
   # mutate(ClinVarLabelP = if_else(ClinVarLabel %in% c("LB/B", "LP/P"),
   #                                ProteinChange, "")) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
@@ -59,6 +62,10 @@ print(length(unique(common_variants)))
 
 data <- data %>%
   inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+data %>%
+  group_by(id) %>%
+  summarise(total_raw_score = n())
 
 res_corr <- get_beta_FUSE_correlation_p_value(data)
 title_txt <- bquote(paste(
@@ -96,7 +103,7 @@ pt <- getScatterPlot(data,
   ybreaks = ybreaks
 )
 pt
-filename <- "20231118_CALM1_Beta_Fuse.pptx"
+filename <- "20231122_MSH2_Beta_Fuse.pptx"
 file_path <- paste0(figure_path, filename)
 graph2ppt(pt, file_path, width = 7, height = 6, append = TRUE)
 # ggsave(file_path, dpi = 600, bg="white")
@@ -108,6 +115,7 @@ data <- as_tibble(read.table(cancer_filenames[["ColorectalCancer"]],
 )) %>%
   mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
   filter(pval < pval_threshold) %>%
+  mutate(LOG10PVAL = -log10(pval)) %>%
   mutate(LOG10AF = -log10(allele_frequency)) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
 
@@ -121,10 +129,14 @@ print(length(unique(common_variants)))
 
 data <- data %>%
   inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+data %>%
+  group_by(id) %>%
+  summarise(total_raw_score = n())
+
 
 res_corr <- get_beta_FUSE_correlation_p_value(data)
 title_txt <- bquote(paste(
-  "CALM1, Colorectal Cancer, ", beta, " vs. FUSE Score, ", rho, "=",
+  "MSH2, Colorectal Cancer, ", beta, " vs. FUSE Score, ", rho, "=",
   .(round(res_corr$corr, 2)), " , p=", .(round(res_corr$pval, 4))
 ))
 
@@ -133,10 +145,10 @@ ylabel <- "Beta"
 x_col <- "FUSE_score"
 y_col <- "beta"
 
-xlimits <- c(-1, 1)
-xbreaks <- seq(-1, 1, by = 1)
-ylimits <- c(3, 7)
-ybreaks <- seq(3, 7, by = 1)
+xlimits <- c(-3, 2)
+xbreaks <- seq(-3, 2, by = 1)
+ylimits <- c(3, 10)
+ybreaks <- seq(3, 10, by = 1)
 
 
 pt <- getScatterPlot(data,
@@ -145,12 +157,15 @@ pt <- getScatterPlot(data,
   ylabel,
   x_col,
   y_col,
+  size_col = "LOG10PVAL",
+  size_name = "-LOG10(PVAL)",
   alpha = 3,
   point_size = 2,
   point_color = "#00AFBB",
   title_font_size = 10,
   x_y_font_size = 12,
   annotate_text_size = 4,
+  #annotate.point = TRUE
   annotate.point = TRUE,
   xlimits = xlimits,
   xbreaks = xbreaks,
@@ -168,6 +183,7 @@ data <- as_tibble(read.table(cancer_filenames[["LungCancer"]],
 )) %>%
   mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
   filter(pval < pval_threshold) %>%
+  mutate(LOG10PVAL = -log10(pval)) %>%
   mutate(LOG10AF = -log10(allele_frequency)) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
 
@@ -181,10 +197,13 @@ print(length(unique(common_variants)))
 
 data <- data %>%
   inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+data %>%
+  group_by(id) %>%
+  summarise(total_raw_score = n())
 
 res_corr <- get_beta_FUSE_correlation_p_value(data)
 title_txt <- bquote(paste(
-  "CALM1, Lung Cancer, ", beta, " vs. FUSE Score, ", rho, "=",
+  "MSH2, Lung Cancer, ", beta, " vs. FUSE Score, ", rho, "=",
   .(round(res_corr$corr, 2)), " , p=", .(round(res_corr$pval, 4))
 ))
 
@@ -229,6 +248,7 @@ data <- as_tibble(read.table(cancer_filenames[["ProstateCancer"]],
 )) %>%
   mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
   filter(pval < pval_threshold) %>%
+  mutate(LOG10PVAL = -log10(pval)) %>%
   mutate(LOG10AF = -log10(allele_frequency)) %>%
   mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
 
@@ -239,7 +259,6 @@ common_variants <- intersect(
 )
 
 print(length(unique(common_variants)))
-
 
 
 data <- data %>%
