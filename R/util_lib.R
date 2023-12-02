@@ -66,7 +66,20 @@ readMaveData <- function(file.path_val, gene_target = NULL) {
   df <- as_tibble(read.table(file.path_val,
     header = TRUE, sep = ","
   )) %>%
-    mutate(ProteinChange = str_extract(ProteinChange, "(?<=:).+"))
+    mutate(ProteinChange = str_extract(ProteinChange, "(?<=:).+")) %>%
+    mutate(
+      ClinVarLabel = case_when(
+        str_detect(ClinVar.Variant.Category, "US") ~ "US",
+        str_detect(ClinVar.Variant.Category, "LB/B") ~ "LB/B",
+        str_detect(ClinVar.Variant.Category, "LP/P") ~ "LP/P",
+        ClinVar.Variant.Category == "" ~ "None",
+        ClinVar.Variant.Category == "-" ~ "None",
+        TRUE ~ ClinVar.Variant.Category
+      )
+    ) %>%
+    mutate(ClinVarLabel = trimws(ClinVarLabel)) %>%
+    mutate(ClinVarLabel = factor(ClinVarLabel))
+
 
   if (!is.null(gene_target)) {
     df <- df %>% filter(gene == gene_target)
@@ -121,4 +134,74 @@ print_html_df <- function(df,
     rep %>% save_kable(file = file_path, self_contained = TRUE)
   }
   return(rep)
+}
+
+
+
+get_genebass_mave_data_with_pval <- function(gene_target,
+                                             mave_data,
+                                             cancer_label,
+                                             cancer_filenames,
+                                             n_outliers = 5) {
+  data <- as_tibble(read.table(cancer_filenames[[cancer_label]],
+    header = TRUE, sep = ","
+  )) %>%
+    mutate(ProteinChange = str_extract(hgvsp, "(?<=:).+")) %>%
+    mutate(pval_category = case_when(
+      pval <= 0.01 ~ "[0, 0.01]",
+      (0.01 < pval) & (pval < 0.1) ~ "[0.01, 0.1[",
+      (0.1 < pval) ~ "[0.1, 1[",
+      TRUE ~ NA_character_
+    )) %>%
+    mutate(pval_category = factor(pval_category)) %>%
+    mutate(LOG10AF = -log10(allele_frequency)) %>%
+    mutate(LOG10PVAL = -log10(pval)) %>%
+    mutate(ClinVarLabelP = gsub("p.", "", ProteinChange))
+
+
+  common_variants <- intersect(
+    unique(data$ProteinChange),
+    unique(mave_data$ProteinChange)
+  )
+
+  print(paste0("Common Variants:", length(unique(common_variants))))
+
+  data <- data %>%
+    inner_join(mave_data %>% filter(gene == gene_target), by = "ProteinChange")
+
+  data <- data %>%
+    filter(!is.na(pval_category)) %>%
+    group_by(pval_category) %>%
+    mutate(
+      lower_bound = quantile(FUSE_score, 0.25) - 1.5 * IQR(FUSE_score),
+      upper_bound = quantile(FUSE_score, 0.75) + 1.5 * IQR(FUSE_score),
+      is_lower_outlier = ifelse(FUSE_score < lower_bound, TRUE, FALSE),
+      is_upper_outlier = ifelse(FUSE_score > upper_bound, TRUE, FALSE),
+      is_outlier = ifelse(is_lower_outlier | is_upper_outlier,
+        TRUE, FALSE
+      ),
+    ) %>%
+    mutate(is_outlier = factor(is_outlier, levels = c(FALSE, TRUE))) %>%
+    mutate(is_outlier_label = ifelse(is_outlier == FALSE, "Inlier", "Outlier")) %>%
+    ungroup() %>%
+    mutate(row_id = row_number())
+
+  # Select top n lower and upper bound outliers
+  top_lower_outliers <- data %>%
+    filter(is_lower_outlier) %>%
+    slice_min(FUSE_score, n = n_outliers, with_ties = FALSE)
+
+  top_upper_outliers <- data %>%
+    filter(is_upper_outlier) %>%
+    slice_max(FUSE_score, n = n_outliers, with_ties = FALSE)
+
+  # Combine top outliers
+  top_outliers <- bind_rows(top_lower_outliers, top_upper_outliers)
+
+  # Modify ClinVarLabelP for only top outliers
+  data <- data %>%
+    mutate(ClinVarLabelP = ifelse(row_id %in% unique(top_outliers$row_id),
+                                  ClinVarLabelP, ""))
+
+  return(data)
 }
