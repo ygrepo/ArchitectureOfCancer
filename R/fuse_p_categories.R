@@ -16,11 +16,13 @@ setwd("~/github/ArchitectureOfCancer/")
 source("R/plot_lib.R")
 source("R/util_lib.R")
 
-gene_target <- "BRCA1"
-cancer_filenames <- getCancerFiles("data/BRCA1", gene_target)
-filename <- "20231201_BRCA1_Fuse_PVal.pptx"
+gene_target <- "BRCA2"
+cancer_filenames <- getCancerFiles("data/BRCA2", gene_target)
+filename <- "20231202_BRCA2_Fuse_PVal.pptx"
 file_path <- paste0(figure_path, filename)
 size_col <- "beta"
+xlabel <- "P Value Category"
+ylabel <- "FUSE Score"
 
 mave_data <- readMaveData("data/mave_data_brn_v3.csv")
 
@@ -32,20 +34,11 @@ data <- get_genebass_mave_data_with_pval(
   cancer_filenames
 )
 
-data2 <- data %>%
-  filter((pval >= 0.1) & (FUSE_score < -1.5)) %>%
-  select(variant_id, ClinVarLabelP, FUSE_score, 
-         lower_bound, upper_bound, is_outlier, is_lower_outlier, is_upper_outlier,
-         is_outlier_label, row_id)
-
 title_txt <- paste(gene_target, "Breast Cancer",
   "FUSE Score",
   "Variants by P Value Category",
   sep = ","
 )
-xlabel <- "P Value Category"
-ylabel <- "FUSE Score"
-
 
 pt <- get_violin_box_FUSE_score_by_pval_category(data,
   title_txt = title_txt,
@@ -54,9 +47,8 @@ pt <- get_violin_box_FUSE_score_by_pval_category(data,
   ylabel = ylabel,
   annotate_flag = TRUE,
   annotate_text_size = 5,
-  ybreaks =  seq(-3, 3, by = 0.5)
+  ybreaks = seq(-3, 3, by = 0.5)
 )
-pt <- pt + stat_compare_means(label.y = 2.5)
 pt
 
 # pt <- cowplot::plot_grid(pt1, pt2, nrow = 2)
@@ -75,18 +67,18 @@ title_txt <- paste(gene_target, "Colorectal Cancer",
   "Variants by P Value Category",
   sep = ","
 )
-xlabel <- "P Value Category"
-ylabel <- "FUSE Score"
 
 pt <- get_violin_box_FUSE_score_by_pval_category(data,
   title_txt = title_txt,
+  size_col = size_col,
   xlabel = xlabel,
   ylabel = ylabel,
   annotate_flag = TRUE,
-  annotate_text_size = 2
+  annotate_text_size = 5,
+  ybreaks = seq(-3, 3, by = 1)
 )
-pt <- pt + stat_compare_means(label.y = 3)
 pt
+
 graph2ppt(pt, file_path, width = 7, height = 7, append = TRUE)
 
 
@@ -105,17 +97,16 @@ title_txt <- paste(gene_target, "Lung Cancer",
   "Variants by P Value Category",
   sep = ","
 )
-xlabel <- "P Value Category"
-ylabel <- "FUSE Score"
 
 pt <- get_violin_box_FUSE_score_by_pval_category(data,
   title_txt = title_txt,
+  size_col = size_col,
   xlabel = xlabel,
   ylabel = ylabel,
   annotate_flag = TRUE,
-  annotate_text_size = 2
+  annotate_text_size = 5,
+  ybreaks = seq(-3, 3, by = 1)
 )
-pt <- pt + stat_compare_means(label.y = 3)
 pt
 graph2ppt(pt, file_path, width = 7, height = 7, append = TRUE)
 
@@ -133,17 +124,16 @@ title_txt <- paste(gene_target, "Prostate Cancer",
   "Variants by P Value Category",
   sep = ","
 )
-xlabel <- "P Value Category"
-ylabel <- "FUSE Score"
 
 pt <- get_violin_box_FUSE_score_by_pval_category(data,
-  title_txt = title_txt,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 2
+                                                 title_txt = title_txt,
+                                                 size_col = size_col,
+                                                 xlabel = xlabel,
+                                                 ylabel = ylabel,
+                                                 annotate_flag = TRUE,
+                                                 annotate_text_size = 5,
+                                                 ybreaks = seq(-3, 3, by = 1)
 )
-pt <- pt + stat_compare_means(label.y = -3)
 pt
 graph2ppt(pt, file_path, width = 7, height = 7, append = TRUE)
 
@@ -153,25 +143,24 @@ graph2ppt(pt, file_path, width = 7, height = 7, append = TRUE)
 data <- get_genebass_mave_data_with_pval(
   gene_target,
   mave_data,
-  "ProstateCancer",
+  "RareCancer",
   cancer_filenames
 )
 
-title_txt <- paste(gene_target, "Prostate Cancer",
-                   "FUSE Score",
-                   "Variants by P Value Category",
-                   sep = ","
+title_txt <- paste(gene_target, "Rare Cancer",
+  "FUSE Score",
+  "Variants by P Value Category",
+  sep = ","
 )
-xlabel <- "P Value Category"
-ylabel <- "FUSE Score"
 
 pt <- get_violin_box_FUSE_score_by_pval_category(data,
                                                  title_txt = title_txt,
+                                                 size_col = size_col,
                                                  xlabel = xlabel,
                                                  ylabel = ylabel,
                                                  annotate_flag = TRUE,
-                                                 annotate_text_size = 2
+                                                 annotate_text_size = 5,
+                                                 ybreaks = seq(-3, 3, by = 1)
 )
-pt <- pt + stat_compare_means(label.y = -3)
 pt
 graph2ppt(pt, file_path, width = 7, height = 7, append = TRUE)
