@@ -1,3 +1,8 @@
+library(dplyr)
+library(readr)
+
+result_data_path <- "outputs/data/"
+
 getCorrelation <- function(label,
                            filename,
                            mave_data,
@@ -201,7 +206,21 @@ get_genebass_mave_data_with_pval <- function(gene_target,
   # Modify ClinVarLabelP for only top outliers
   data <- data %>%
     mutate(ClinVarLabelP = ifelse(row_id %in% unique(top_outliers$row_id),
-                                  ClinVarLabelP, ""))
+      ClinVarLabelP, ""
+    ))
 
   return(data)
+}
+
+
+write_csv_data <- function(df, filename, delim = " ") {
+  setwd("~/github/ArchitectureOfCancer/")
+  filename <- paste0(result_data_path, filename)
+  readr::write_delim(df, filename, delim = delim)
+}
+
+read_csv_data <- function(filename, delim = " ") {
+  setwd("~/github/ArchitectureOfCancer")
+  filename <- paste0(result_data_path, filename)
+  return(dplyr::as_tibble(readr::read_delim(filename, delim = delim)))
 }
