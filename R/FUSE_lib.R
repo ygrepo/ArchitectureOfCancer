@@ -144,9 +144,7 @@ de_noise <- function(df, pos_mean_method, df.funsum, include_LOF = T, show_func_
       temp2[i, ind] <- temp[i, ind] - df.funsum[df.pos_score$aaref[i], aa_list[ind]]
     }
 
-    # setTxtProgressBar(pb,i)
   }
-  # close(pb)
 
   # calculate pos_mean by other methods
   if (pos_mean_method == "mean") {
@@ -199,6 +197,11 @@ de_noise <- function(df, pos_mean_method, df.funsum, include_LOF = T, show_func_
 get_FUSE_score_df <- function(filename, pos_mean_method = "js") {
   full_filename <- paste0(result_data_path, filename)
   df_all <- vroom(full_filename, delim = ",")
+  df_all <- df_all %>%
+    dplyr::filter(id == "urn:mavedb:00000003-a-2")
+   # dplyr::filter((id == "urn:mavedb:00000003-a-2") & 
+   #                (aapos == 2) & (aaref == 'D') & (aaalt == 'A'))
+   # 
   temp <- check_DMS_input(df = df_all)
   df_all <- temp[[1]]
   msg <- temp[[2]]
@@ -239,19 +242,19 @@ get_FUSE_score_df <- function(filename, pos_mean_method = "js") {
     df_all.out <- rbind(df_all.out, df.out)
 
     ## load df.NSFP for each gene
-    ind <- which(df.NSFP_all$genename == gene_id)
-    if (length(ind)) {
-      df.NSFP <- df.NSFP_all[ind, ]
-      df.NSFP$aa_str <- paste0(df.NSFP$aaref, df.NSFP$aapos, df.NSFP$aaalt)
-      ind <- match(df.NSFP$aa_str, df.out$gene_aa_str)
-      df.NSFP$norm_raw_score <- df.out$norm_raw_score[ind]
-      df.NSFP$pos_score <- df.out$pos_score[ind]
-      df.NSFP$sub_score <- df.out$sub_score[ind]
-      df.NSFP$final_score <- df.out$final_score[ind]
-      df.NSFP_all_out <- rbind(df.NSFP_all_out, df.NSFP)
-    } else {
-      print(paste0("Warning: no ClinVar record found for ", gene_id, "!"))
-    }
+    # ind <- which(df.NSFP_all$genename == gene_id)
+    # if (length(ind)) {
+    #   df.NSFP <- df.NSFP_all[ind, ]
+    #   df.NSFP$aa_str <- paste0(df.NSFP$aaref, df.NSFP$aapos, df.NSFP$aaalt)
+    #   ind <- match(df.NSFP$aa_str, df.out$gene_aa_str)
+    #   df.NSFP$norm_raw_score <- df.out$norm_raw_score[ind]
+    #   df.NSFP$pos_score <- df.out$pos_score[ind]
+    #   df.NSFP$sub_score <- df.out$sub_score[ind]
+    #   df.NSFP$final_score <- df.out$final_score[ind]
+    #   df.NSFP_all_out <- rbind(df.NSFP_all_out, df.NSFP)
+    # } else {
+    #   print(paste0("Warning: no ClinVar record found for ", gene_id, "!"))
+    # }
   }
 
   ## render de-noised DMS data table
@@ -260,7 +263,7 @@ get_FUSE_score_df <- function(filename, pos_mean_method = "js") {
     "gene", "aapos", "aaref", "aaalt",
     "raw_score", "norm_raw_score", "pos_score", "sub_score", "final_score"
   )] %>%
-    dplyr::filter(!(is.na(raw_score))) %>%
+    #dplyr::filter(!(is.na(raw_score))) %>%
     dplyr::distinct()
   
   return(df_all.out)
