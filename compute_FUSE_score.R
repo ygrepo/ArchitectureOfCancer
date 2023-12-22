@@ -48,29 +48,13 @@ res_df <- get_FUSE_score_df(
 )
 res_df %>%
   dplyr::arrange(aaref, aaalt) %>%
-  dplyr::filter((aapos == 5) & (aaref == 'A') )
+  dplyr::filter((aapos == 5) & (aaref == "A"))
 
 df %>%
   dplyr::filter(id == "urn:mavedb:00000003-a-2") %>%
   dplyr::arrange(aaref, aaalt) %>%
   dplyr::select(gene, aapos, aaref, aaalt, raw_score, norm_raw_score, pos_score, FUSE_score) %>%
-  dplyr::filter((aapos == 5) & (aaref == 'A') )
+  dplyr::filter((aapos == 5) & (aaref == "A"))
 
-df %>%
-  dplyr::filter((aapos == 1) & (aaref == "M") & (aaalt %in% c(
-    "R",
-    "K",
-    "T",
-    "V",
-    "I"
-  ))) %>%
-  dplyr::arrange(aaalt)
-
-df1 <- df %>%
-  filter((aapos == 2) & (aaref == "D") & (aaalt == "A")) %>%
-  select(
-    id, aapos, aaref, aaalt, ProteinChange, raw_score, norm_raw_score,
-    FUSE_score
-  )
-res_df %>%
-  filter((aapos == 2) & (aaref == "D") & (aaalt == "A"))
+mave_data %>%
+  dplyr::filter(ProteinChange == "p.Lys3Asn")
