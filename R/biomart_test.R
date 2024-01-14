@@ -1,5 +1,25 @@
 
 library(biomaRt)
+library(tidyverse)
+library(dplyr)
+library(kableExtra)
+library(export)
+library(RColorBrewer)
+
+rm(list = ls())
+
+data_path <- "outputs/data"
+figure_path <- "outputs/figures/"
+
+setwd("~/github/ArchitectureOfCancer/")
+
+source("R/plot_lib.R")
+source("R/util_lib.R")
+source("R/FUSE_lib.R")
+
+
+mave_data <- readMaveData("data/mave_data_brn_v3.csv")
+
 
 # install.packages("devtools")
 # devtools::install_version("dbplyr", version = "2.3.4")
