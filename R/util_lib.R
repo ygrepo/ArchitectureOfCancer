@@ -66,6 +66,26 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
   cancer_filenames
 }
 
+get_vep_files <- function(directory_path, file_pattern) {
+  # List all files in the directory that match the pattern cancer.pattern
+  matching_files <- list.files(
+    path = directory_path,
+    pattern = file_pattern
+  )
+
+  cancer_filenames <- list()
+
+  # Iterate over the matching files and build the mapping
+  for (file in matching_files) {
+    # Create the full file path
+    file_path <- file.path(directory_path, file)
+    # Add the label and file path to the mapping
+    cancer_filenames <- c(cancer_filenames, file_path)
+  }
+
+  return(cancer_filenames)
+}
+
 
 readMaveData <- function(file.path_val, gene_target = NULL) {
   df <- as_tibble(read.table(file.path_val,
@@ -212,10 +232,42 @@ get_genebass_mave_data_with_pval <- function(gene_target,
   return(data)
 }
 
+read_vep_file <- function(filename, gene) {
+  vep_output <- as_tibble(read.table(filename,
+    header = TRUE, sep = "\t"
+  )) %>%
+    dplyr::filter((gene == gene)) %>%
+    # dplyr::filter((gene == gene_target) &
+    #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
+    # filter(substr(markerID, nchar(markerID) - 2, nchar(markerID)) == "T/C") %>%
+    dplyr::mutate(markerID = substr(markerID, 7, nchar(markerID))) %>%
+    dplyr::mutate(markerID = str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
+    # mutate(markerID = str_replace(markerID, "_T/C$", "-T-C"))%>%
+    dplyr::rename("variant_id" = "markerID") %>%
+    dplyr::rename("vep_consequence" = "consequence") %>%
+    dplyr::arrange(variant_id)
+
+  return(vep_output)
+}
+
+read_genebass_data_with_variant_process <- function(tissue, cancer_filenames) {
+  genebass_output <- as_tibble(read.table(cancer_filenames[[tissue]],
+    header = TRUE, sep = ","
+  )) %>%
+    # filter(consequence == "missense_variant") %>%
+    # filter(substr(variant_id, nchar(variant_id) - 2, nchar(variant_id)) == "T-C") %>%
+    dplyr::mutate(variant_id = substr(variant_id, 4, nchar(variant_id))) %>%
+    dplyr::rename("genebass_consequence" = "consequence") %>%
+    dplyr::arrange(variant_id)
+
+  return(genebass_output)
+}
+
 
 write_csv_data <- function(df, filename, delim = " ") {
   setwd("~/github/ArchitectureOfCancer/")
   filename <- paste0(result_data_path, filename)
+  print(paste0("Saving data to:", filename))
   readr::write_delim(df, filename, delim = delim)
 }
 
