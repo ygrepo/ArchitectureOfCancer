@@ -1,0 +1,3 @@
+grep -Rwl . -e "BRCA1" > BRCA1_files_search.txt
+scp greaty01@minerva.hpc.mssm.edu:/hpc/users/greaty01/"cancers_common_missense_BreastCancer_custom_Breast cancer_nan_annotated.tsv" .
+scp data/BRCA1/* greaty01@minerva.hpc.mssm.edu:/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/Annotated_Genebass/data/BRCA1/*

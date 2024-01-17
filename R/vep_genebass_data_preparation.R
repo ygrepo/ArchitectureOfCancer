@@ -22,13 +22,15 @@ tissue <- "BreastCancer"
 cancer_filenames <- getCancerFiles(paste0("data/", gene_target), gene_target)
 genebass_output <- read_genebass_data_with_variant_process(cancer_filenames = cancer_filenames,
                                                            tissue = tissue)
-file_list <- get_vep_files(directory_path = "data/vep_outputs/breast_cancer", 
+print(head(genebass_output))
+file_list <- get_vep_files(directory_path = paste0("data/", gene_target), 
                            file_pattern = "cancers")
 
 result_list <- lapply(file_list, function(filename) {
   read_vep_file(filename, gene_target)
 })
 vep_df <- dplyr::bind_rows(result_list)
+print(head(vep_df))
 
 df <- genebass_output %>%
   inner_join(vep_df, by="variant_id")
