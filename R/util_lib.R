@@ -241,13 +241,23 @@ read_vep_file <- function(filename, gene) {
     #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
     # filter(substr(markerID, nchar(markerID) - 2, nchar(markerID)) == "T/C") %>%
     dplyr::mutate(markerID = substr(markerID, 7, nchar(markerID))) %>%
-    dplyr::mutate(markerID = str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
+    dplyr::mutate(markerID = stringr::str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
     # mutate(markerID = str_replace(markerID, "_T/C$", "-T-C"))%>%
     dplyr::rename("variant_id" = "markerID") %>%
     dplyr::rename("vep_consequence" = "consequence") %>%
-    dplyr::arrange(variant_id)
-
-  return(vep_output)
+    dplyr::arrange(variant_id) %>%
+    dplyr::mutate(
+      polyphen_label = stringr::str_extract(polyphen, "^[a-zA-Z]+"), # Extracting letters before the parentheses
+      polyphen_score = as.numeric(stringr::str_extract(polyphen, "\\d+\\.\\d+")) # Extracting floating point number
+    ) %>%
+    dplyr::mutate(
+      polyphen_label_simplified = case_when(
+        str_detect(polyphen_label, "possibly") ~ "probably",
+        is.na(polyphen_label) ~ "unknown",
+        TRUE ~ polyphen_label
+      )
+    ) %>%
+    return(vep_output)
 }
 
 read_genebass_data_with_variant_process <- function(tissue, cancer_filenames) {
