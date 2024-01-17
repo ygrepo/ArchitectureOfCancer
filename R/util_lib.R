@@ -257,6 +257,8 @@ read_vep_file <- function(filename, gene) {
         TRUE ~ polyphen_label
       )
     ) %>%
+    dplyr::rename("polyphen_pval"="Pvalue")
+  
     return(vep_output)
 }
 
@@ -268,7 +270,8 @@ read_genebass_data_with_variant_process <- function(tissue, cancer_filenames) {
     # filter(substr(variant_id, nchar(variant_id) - 2, nchar(variant_id)) == "T-C") %>%
     dplyr::mutate(variant_id = substr(variant_id, 4, nchar(variant_id))) %>%
     dplyr::rename("genebass_consequence" = "consequence") %>%
-    dplyr::arrange(variant_id)
+    dplyr::arrange(variant_id) %>%
+    dplyr::rename("genebass_pval"="pval")
 
   return(genebass_output)
 }
