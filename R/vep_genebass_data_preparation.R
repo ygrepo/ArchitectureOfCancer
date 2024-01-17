@@ -19,11 +19,11 @@ source("R/util_lib.R")
 
 gene_target <- "BRCA1"
 tissue <- "BreastCancer"
-cancer_filenames <- getCancerFiles(paste0("data/", gene_target), gene_target)
+cancer_filenames <- getCancerFiles(paste0("/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/Annotated_Genebass/data/", gene_target), gene_target)
 genebass_output <- read_genebass_data_with_variant_process(cancer_filenames = cancer_filenames,
                                                            tissue = tissue)
 print(head(genebass_output))
-file_list <- get_vep_files(directory_path = paste0("data/", gene_target), 
+file_list <- get_vep_files(directory_path = paste0("/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/Annotated_Genebass/data/", gene_target), 
                            file_pattern = "cancers")
 
 result_list <- lapply(file_list, function(filename) {
