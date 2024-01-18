@@ -36,7 +36,7 @@ df <- genebass_output %>%
   inner_join(vep_df, by="variant_id")
 
 filename <- "BRCA1_breast_cancer_polyphen.csv"
-file_path <- paste0("/sc/arion/projects/DiseaseGeneCell/Huang_lab_data/Annotated_Genebass/data/", gene_target)
+file_path <- paste0("outputs/data/", gene_target)
 file_path <- paste0(file_path, "/", filename)
 write_csv_data(df = df, filename = file_path)
 
