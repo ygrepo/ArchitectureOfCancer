@@ -33,4 +33,6 @@ vep_df <- dplyr::bind_rows(result_list)
 print(head(vep_df))
 
 filename <- "polyphen.csv"
-write_csv_gene_df(df = df, filename = filename)
+write_csv_gene_df(df = df, 
+                  gene = gene,
+                  filename = filename)
