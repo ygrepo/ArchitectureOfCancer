@@ -191,7 +191,7 @@ write_csv_gene_df <- function(df, filename, gene, delim = " ") {
   setwd("~/github/ArchitectureOfCancer/")
   filename <- paste0(gene_data, gene, "/", filename)
   print(paste0("Saving data to:", filename))
-  readr::write_delim(dplyr::as_data_frame(df), filename, delim = delim)
+  readr::write_delim(df, filename, delim = delim)
 }
 
 write_csv_data <- function(df, filename, delim = " ") {
