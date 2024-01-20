@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Destination directory where you want to copy the files
-destination_dir="./BRCA1"
+destination_dir=$1
+
 
 # Check if the file list exists
 if [ -f "BRCA1/BRCA1_annotated_BreastCancer_files_search_1.txt" ]; then
