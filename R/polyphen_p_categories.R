@@ -16,16 +16,13 @@ source("R/io_utils.R")
 source("R/util_lib.R")
 source("R/plot_lib.R")
 
-gene_target <- "BRCA1"
+gene <- "APC"
 ppt_filename <- "20240117_BRCA1_Polyphen_PVal.pptx"
 size_col <- "beta"
 xlabel <- "P Value Category"
 ylabel <- "Polyphen Score"
 
-filename <- "outputs/data/BRCA1_breast_cancer_polyphen.csv"
-data <- as_tibble(read.table(filename,
-  header = TRUE, sep = " "
-))
+df <- read_csv_polyphen_df(gene)
 
 
 # Breast Cancer ----

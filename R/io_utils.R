@@ -101,7 +101,7 @@ get_vep_files <- function(filename) {
   filename <- paste0(gene_data, filename)
 
   print(paste0("Reading data from:", filename))
-  
+
   # Read lines from the file
   file_lines <- readLines(filename)
 
@@ -146,24 +146,24 @@ read_vep_file <- function(filename, gene_val) {
     header = TRUE, sep = "\t"
   )) %>%
     dplyr::filter(gene == gene_val)
-  
+
   print(paste0("Columns:", colnames(vep_output)))
   print(paste0("Genes:", unique(vep_output$gene)))
-  
+
   if (length(unique(vep_output$gene)) != 1) {
     print(paste0("Too many genes, returning empty df"))
     return(NULL)
   }
-  
+
   # dplyr::filter((gene == gene_target) &
-    #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
-    # filter(substr(markerID, nchar(markerID) - 2, nchar(markerID)) == "T/C") %>%
+  #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
+  # filter(substr(markerID, nchar(markerID) - 2, nchar(markerID)) == "T/C") %>%
   vep_output <- vep_output %>%
     dplyr::mutate(markerID = substr(markerID, 7, nchar(markerID))) %>%
     dplyr::mutate(markerID = stringr::str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
     # mutate(markerID = str_replace(markerID, "_T/C$", "-T-C"))%>%
     dplyr::rename("variant_id" = "markerID") %>%
-    #dplyr::rename("vep_consequence" = "consequence") %>%
+    # dplyr::rename("vep_consequence" = "consequence") %>%
     dplyr::arrange(variant_id) %>%
     dplyr::mutate(
       polyphen_label = stringr::str_extract(polyphen, "^[a-zA-Z]+"), # Extracting letters before the parentheses
@@ -175,7 +175,7 @@ read_vep_file <- function(filename, gene_val) {
         is.na(polyphen_label) ~ "unknown",
         TRUE ~ polyphen_label
       )
-    ) 
+    )
   # %>%
   #   dplyr::rename("polyphen_pval" = "Pvalue")
 
@@ -203,6 +203,21 @@ write_csv_gene_df <- function(df, filename, gene, delim = " ") {
   print(paste0("Saving data to:", filename))
   readr::write_delim(df, filename, delim = delim)
 }
+
+read_csv_gene_df <- function(filename, delim = " ") {
+  setwd("~/github/ArchitectureOfCancer/")
+  print(paste0("Reading data from:", filename))
+  df <- as_tibble(read.table(filename,
+    header = TRUE, sep = " "
+  ))
+  return(df)
+}
+
+read_csv_polyphen_df <- function(gene) {
+  filename <- paste0(gene_data, gene, "/polyphen.csv")
+  return(read_csv_gene_df(filename))
+}
+
 
 write_csv_data <- function(df, filename, delim = " ") {
   setwd("~/github/ArchitectureOfCancer/")
