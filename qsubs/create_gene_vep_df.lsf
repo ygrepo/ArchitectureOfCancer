@@ -10,4 +10,4 @@
 
 module purge
 module load R/4.2.0
-Rscript ~/github/ArchitectureOfCancer/R/create_gene_vep_df.R BRCA1
+Rscript ~/github/ArchitectureOfCancer/R/create_gene_vep_df.R APC
