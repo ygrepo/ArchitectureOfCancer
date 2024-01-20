@@ -2,6 +2,7 @@ library(dplyr)
 library(readr)
 
 input_data <- "data/"
+gene_data <- "data/genes/"
 figure_path <- "outputs/figures/"
 result_data_path <- "outputs/data/"
 slides_path <- "outputs/slides/"
@@ -152,7 +153,7 @@ read_vep_file <- function(filename, gene) {
     dplyr::mutate(markerID = stringr::str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
     # mutate(markerID = str_replace(markerID, "_T/C$", "-T-C"))%>%
     dplyr::rename("variant_id" = "markerID") %>%
-    dplyr::rename("vep_consequence" = "consequence") %>%
+    #dplyr::rename("vep_consequence" = "consequence") %>%
     dplyr::arrange(variant_id) %>%
     dplyr::mutate(
       polyphen_label = stringr::str_extract(polyphen, "^[a-zA-Z]+"), # Extracting letters before the parentheses
@@ -164,8 +165,9 @@ read_vep_file <- function(filename, gene) {
         is.na(polyphen_label) ~ "unknown",
         TRUE ~ polyphen_label
       )
-    ) %>%
-    dplyr::rename("polyphen_pval" = "Pvalue")
+    ) 
+  # %>%
+  #   dplyr::rename("polyphen_pval" = "Pvalue")
 
   return(vep_output)
 }
@@ -184,6 +186,13 @@ read_genebass_data_with_variant_process <- function(tissue, cancer_filenames) {
   return(genebass_output)
 }
 
+
+write_csv_gene_df <- function(df, filename, gene, delim = " ") {
+  setwd("~/github/ArchitectureOfCancer/")
+  filename <- paste0(gene_data, gene, "/", filename)
+  print(paste0("Saving data to:", filename))
+  readr::write_delim(df, filename, delim = delim)
+}
 
 write_csv_data <- function(df, filename, delim = " ") {
   setwd("~/github/ArchitectureOfCancer/")

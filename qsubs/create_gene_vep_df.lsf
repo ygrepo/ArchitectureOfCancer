@@ -1,0 +1,13 @@
+!/bin/bash
+#BSUB -J c                           # Job name
+#BSUB -P acc_DiseaseGeneCell   # allocation account
+#BSUB -q express                                  # queue
+#BSUB -n 1                                            # number of compute cores = 1
+#BSUB -R rusage[mem=8000]              # 8GB of memory
+#BSUB -W 02:00                                   # walltime in HH:MM
+#BSUB -o %J.log                              # output log (%J : JobID)
+#BSUB -eo %J.stderr                             # error log
+
+module purge
+module load R/4.2.0
+Rscript ~/R/create_gene_vep_df.R BRCA1
