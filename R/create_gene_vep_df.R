@@ -27,7 +27,7 @@ filename <- paste0(gene, "/", filename)
 file_list <- get_vep_files(filename)
 
 result_list <- lapply(file_list, function(filename) {
-  read_vep_file(filename, gene_target)
+  read_vep_file(filename, gene_val = gene)
 })
 vep_df <- dplyr::bind_rows(result_list)
 print(head(vep_df))
