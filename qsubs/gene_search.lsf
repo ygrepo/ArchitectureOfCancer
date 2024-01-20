@@ -8,4 +8,4 @@
 #BSUB -o %J.log                              # output log (%J : JobID)
 #BSUB -eo %J.stderr                             # error log
 
-./gene_files_search.sh BRCA2
+./gene_search.sh BRCA2
