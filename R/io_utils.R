@@ -144,6 +144,7 @@ get_vep_files_2 <- function(directory_path, file_pattern) {
 
 
 read_vep_file <- function(filename, gene) {
+  print(paste0("Read data from:", filename))
   vep_output <- as_tibble(read.table(filename,
     header = TRUE, sep = "\t"
   )) %>%
