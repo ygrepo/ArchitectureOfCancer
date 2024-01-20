@@ -143,12 +143,17 @@ get_vep_files_2 <- function(directory_path, file_pattern) {
 read_vep_file <- function(filename, gene) {
   print(paste0("Read data from:", filename))
   vep_output <- dplyr::as_tibble(read.table(filename,
-    header = TRUE, sep = "\t"
+    header = TRUE, sep = " "
   )) %>%
-    dplyr::filter((gene == gene)) %>%
-    # dplyr::filter((gene == gene_target) &
+    dplyr::filter((gene == gene)) 
+  
+  print(paste0("Columns:", colnames(vep_output)))
+  print(paste0("Genes:", unique(vep_output$gene)))
+  
+  # dplyr::filter((gene == gene_target) &
     #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
     # filter(substr(markerID, nchar(markerID) - 2, nchar(markerID)) == "T/C") %>%
+  vep_output <- vep_output %>%
     dplyr::mutate(markerID = substr(markerID, 7, nchar(markerID))) %>%
     dplyr::mutate(markerID = stringr::str_replace_all(markerID, "_([A-Za-z])\\/([A-Za-z])", "-\\1-\\2")) %>%
     # mutate(markerID = str_replace(markerID, "_T/C$", "-T-C"))%>%
