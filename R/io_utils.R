@@ -143,12 +143,17 @@ get_vep_files_2 <- function(directory_path, file_pattern) {
 read_vep_file <- function(filename, gene) {
   print(paste0("Read data from:", filename))
   vep_output <- dplyr::as_tibble(read.table(filename,
-    header = TRUE, sep = " "
+    header = TRUE, sep = "\t"
   )) %>%
     dplyr::filter((gene == gene)) 
   
   print(paste0("Columns:", colnames(vep_output)))
   print(paste0("Genes:", unique(vep_output$gene)))
+  
+  if (length(unique(vep_output$gene)) != 1) {
+    print(paste0("Too many genes, returning empty df"))
+    return(NULL)
+  }
   
   # dplyr::filter((gene == gene_target) &
     #                 (consequence %in% unique(genebass_output$genebass_consequence))) %>%
