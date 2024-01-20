@@ -15,8 +15,6 @@ source("R/io_utils.R")
 source("R/plot_lib.R")
 source("R/util_lib.R")
 
-gene <- "APC"
-
 # Get the gene name from the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
@@ -25,7 +23,7 @@ if (length(args) == 0) {
 gene <- args[1]
 
 filename <- paste0(gene, "_files_search.txt")
-filename <- paste0("data/genes", "/", gene, "/", filename)
+filename <- paste0(gene, "/", filename)
 file_list <- get_vep_files(filename)
 
 result_list <- lapply(file_list, function(filename) {

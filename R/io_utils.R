@@ -98,8 +98,10 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
 
 get_vep_files <- function(filename) {
   setwd("~/github/ArchitectureOfCancer")
-  filename <- paste0(input_data, filename)
+  filename <- paste0(gene_data, filename)
 
+  print(paste0("Reading data from:", filename))
+  
   # Read lines from the file
   file_lines <- readLines(filename)
 
