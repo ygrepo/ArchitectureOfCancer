@@ -1,6 +1,7 @@
 library(dplyr)
 library(readr)
 
+input_data <- "data/"
 figure_path <- "outputs/figures/"
 result_data_path <- "outputs/data/"
 slides_path <- "outputs/slides/"
@@ -94,7 +95,31 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
   cancer_filenames
 }
 
-get_vep_files <- function(directory_path, file_pattern) {
+get_vep_files <- function(filename) {
+  setwd("~/github/ArchitectureOfCancer")
+  filename <- paste0(input_data, filename)
+
+  # Read lines from the file
+  file_lines <- readLines(filename)
+
+  # Print the lines to check
+  print(file_lines)
+
+  # If you need to do additional processing, you can loop over the lines
+  # For example, if you need to validate each path or extract certain parts of it
+  for (line in file_lines) {
+    # Your processing code here
+    # For example, check if the file exists
+    if (file.exists(line)) {
+      print(paste("File exists:", line))
+    } else {
+      print(paste("File does not exist:", line))
+    }
+  }
+  return(file_lines)
+}
+
+get_vep_files_2 <- function(directory_path, file_pattern) {
   # List all files in the directory that match the pattern cancer.pattern
   matching_files <- list.files(
     path = directory_path,
@@ -196,5 +221,4 @@ save_to_ppt <- function(filename, pt) {
   filename <- paste0(slides_path, filename)
   print(paste0("Saving to:", filename))
   graph2ppt(pt, filename, width = 7, height = 7, append = TRUE)
-  
 }
