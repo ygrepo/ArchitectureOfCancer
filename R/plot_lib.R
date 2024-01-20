@@ -4,6 +4,7 @@ library(rlang)
 library(ggcorrplot)
 library(RColorBrewer)
 library(ggrepel)
+library(ggthemes)
 
 clinvar_label_color_mappings <- c(
   "None" = "#93C47D",
@@ -11,6 +12,58 @@ clinvar_label_color_mappings <- c(
   "LB/B" = "#CC00B1",
   "LP/P" = "#CC0000"
 )
+
+polyphen_label_color_mappings <- c(
+  "benign" = "#6FA8DC",
+  "possibly" = "#CC00B1",
+  "probably" = "#CC0000"
+)
+
+theme_publication <- function(base_size = 12, 
+                              base_family = "Helvetica", 
+                              base_face = "bold", 
+                              legend_bottom = TRUE) {
+  if (legend_bottom) {
+    loc <- "bottom"
+
+    orientation <- "horizontal"
+  } else {
+    loc <- "right"
+
+    orientation <- "vertical"
+  }
+
+  (ggthemes::theme_foundation(base_size = base_size, base_family = base_family)
+
+  + theme(
+      plot.title = element_text(
+        face = base_face,
+        size = rel(1.2), hjust = 0.5
+      ),
+      text = element_text(),
+      panel.background = element_rect(colour = NA),
+      plot.background = element_rect(colour = NA),
+      panel.border = element_rect(colour = NA),
+      axis.title = element_text(face = base_face, size = rel(1)),
+      axis.title.y = element_text(angle = 90, vjust = 2),
+      axis.title.x = element_text(vjust = -0.2),
+      axis.text = element_text(),
+      axis.line = element_line(colour = "black"),
+      axis.ticks = element_line(),
+      panel.grid.major = element_line(colour = "#f0f0f0"),
+      panel.grid.minor = element_blank(),
+      legend.key = element_rect(colour = NA),
+      legend.position = loc,
+      legend.text = element_text(size = rel(1.2)),
+      legend.direction = orientation,
+      legend.key.size = unit(0.3, "cm"),
+      legend.spacing = unit(0, "cm"),
+      legend.title = element_text(face = "italic"),
+      plot.margin = unit(c(5, 5, 5, 5), "mm"),
+      strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
+      strip.text = element_text(face = base_face)
+    ))
+}
 
 getScatterPlot <- function(df,
                            title_txt,
@@ -158,16 +211,20 @@ get_violin_box_FUSE_score_by_pval_category <- function(df,
     scale_size_area() +
     scale_color_manual(values = clinvar_label_color_mappings) +
     scale_shape_manual(values = c(19, 17)) +
-    labs(x = xlabel, y = ylabel, title = title_txt, 
-         color = "ClinVar Label",
-         shape = "Inlier/Outlier")
+    labs(
+      x = xlabel, y = ylabel, title = title_txt,
+      color = "ClinVar Label",
+      shape = "Inlier/Outlier"
+    )
 
   if (annotate_flag) {
     pt <- pt + geom_text_repel(
-      data =subset(df, is_outlier == TRUE),
-      aes(x = pval_category,
-          y = FUSE_score,
-          label = ClinVarLabelP),
+      data = subset(df, is_outlier == TRUE),
+      aes(
+        x = pval_category,
+        y = FUSE_score,
+        label = ClinVarLabelP
+      ),
       size = annotate_text_size,
       max.overlaps = 50
     )
@@ -194,5 +251,83 @@ get_violin_box_FUSE_score_by_pval_category <- function(df,
     )
   }
 
+  return(pt)
+}
+
+get_violin_box_polyphen_score_by_pval_category <- function(df,
+                                                           title_txt,
+                                                           size_col,
+                                                           xlabel,
+                                                           ylabel,
+                                                           legend_bottom = FALSE,
+                                                           title_font_size = 12,
+                                                           x_y_font_size = 12,
+                                                           annotate_text_size = 4,
+                                                           alpha = 1,
+                                                           annotate_flag = FALSE,
+                                                           shape_manual = c(16, 18),
+                                                           ybreaks = NULL) {
+  
+  pt <- ggplot(df, aes(x = pval_category, y = polyphen_score)) +
+    geom_violin(trim = FALSE) +
+    geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
+    geom_point(
+      aes(
+        x = pval_category,
+        y = polyphen_score,
+        size = .data[[size_col]],
+        color = polyphen_label,
+        alpha = alpha,
+        shape = is_outlier_label
+      ),
+      alpha = alpha,
+      position = position_jitter(width = 0.2, height = 0)
+    ) +
+    scale_size_area() +
+    scale_color_manual(values = polyphen_label_color_mappings) +
+    scale_shape_manual(values = shape_manual) +
+    labs(
+      x = xlabel, y = ylabel, title = title_txt,
+      color = "Polyphen Label",
+      shape = "Inlier/Outlier"
+    )
+
+  if (annotate_flag) {
+    pt <- pt + geom_text_repel(
+      data = subset(df, is_outlier == TRUE),
+      aes(
+        x = pval_category,
+        y = polyphen_score,
+        label = ClinVarLabelP
+      ),
+      size = annotate_text_size,
+      max.overlaps = 50
+    )
+  }
+  
+  pt <- pt +theme_publication(base_size = x_y_font_size, 
+                              legend_bottom = legend_bottom)
+  pt <- pt +
+    theme(
+      plot.title = element_text(
+        color = "black",
+        size = title_font_size,
+        face = "bold", hjust = 0.5
+      ),
+      axis.title.x = element_text(size = x_y_font_size, face = "bold"),
+      axis.title.y = element_text(size = x_y_font_size, face = "bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(colour = "black")
+    ) +
+    theme_cowplot()
+  
+  if (!is.null(ybreaks)) {
+    pt <- pt + scale_y_continuous(
+      breaks = ybreaks
+    )
+  }
+  
   return(pt)
 }
