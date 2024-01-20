@@ -8,4 +8,4 @@
 #BSUB -o %J.log                              # output log (%J : JobID)
 #BSUB -eo %J.stderr                             # error log
 
-./run_gene_search.sh ../gene_list.txt
+~/github/ArchitectureOfCancer/qsubs/run_gene_search.sh ~/github/ArchitectureOfCancer/gene_list.txt

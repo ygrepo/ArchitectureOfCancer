@@ -11,6 +11,6 @@ GENE_LIST_FILE=$1
 
 # Loop through each line in the file
 while IFS= read -r gene; do
-    ./gene_search.sh "$gene"
+    ~/github/ArchitectureOfCancer/qsubs/gene_search.sh "$gene"
 done < "$GENE_LIST_FILE"
 
