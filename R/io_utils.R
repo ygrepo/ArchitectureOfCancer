@@ -142,7 +142,7 @@ get_vep_files_2 <- function(directory_path, file_pattern) {
 
 read_vep_file <- function(filename, gene) {
   print(paste0("Read data from:", filename))
-  vep_output <- as_tibble(read.table(filename,
+  vep_output <- dplyr::as_tibble(read.table(filename,
     header = TRUE, sep = "\t"
   )) %>%
     dplyr::filter((gene == gene)) %>%
@@ -191,7 +191,7 @@ write_csv_gene_df <- function(df, filename, gene, delim = " ") {
   setwd("~/github/ArchitectureOfCancer/")
   filename <- paste0(gene_data, gene, "/", filename)
   print(paste0("Saving data to:", filename))
-  readr::write_delim(df, filename, delim = delim)
+  readr::write_delim(dplyr::as_data_frame(df), filename, delim = delim)
 }
 
 write_csv_data <- function(df, filename, delim = " ") {
