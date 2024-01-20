@@ -105,9 +105,6 @@ get_vep_files <- function(filename) {
   # Read lines from the file
   file_lines <- readLines(filename)
 
-  # Print the lines to check
-  print(file_lines)
-
   # If you need to do additional processing, you can loop over the lines
   # For example, if you need to validate each path or extract certain parts of it
   for (line in file_lines) {
