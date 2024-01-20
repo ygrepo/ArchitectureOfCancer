@@ -1,3 +1,4 @@
+#!/bin/bash
 
 # Check if a gene name is provided
 if [ -z "$1" ]; then

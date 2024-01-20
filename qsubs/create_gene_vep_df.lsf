@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 #BSUB -J c                           # Job name
 #BSUB -P acc_DiseaseGeneCell   # allocation account
 #BSUB -q express                                  # queue
