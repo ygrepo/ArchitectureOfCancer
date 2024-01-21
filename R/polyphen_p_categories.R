@@ -16,9 +16,10 @@ source("R/io_utils.R")
 source("R/util_lib.R")
 source("R/plot_lib.R")
 
-gene <- "APC"
-ppt_filename <- "20240117_BRCA1_Polyphen_PVal.pptx"
-size_col <- "beta"
+gene <- "BRCA1"
+ppt_filename <- paste0("20240117_", gene, "_Polyphen_PVal.pptx")
+size_col <- "BETA"
+var_label_col <- "VarLabel"
 xlabel <- "P Value Category"
 ylabel <- "Polyphen Score"
 
@@ -28,12 +29,15 @@ df <- read_csv_polyphen_df(gene)
 # Breast Cancer ----
 cancer_type <- "Breast cancer"
 title_cancer_type <- "Breast Cancer"
-df2 <- process_polyphen_data_with_pval(df,
+df <- process_polyphen_data_with_pval(df,
   description_val = cancer_type,
   percent_IQR = 0.25
 )
 
-title_txt <- paste(gene_target, title_cancer_type,
+df1 <- df %>%
+  filter((is_upper_outlier == TRUE) & (pval_category == "[0.01, 0.1["))
+
+title_txt <- paste(gene, title_cancer_type,
   "Polyphen Score",
   "Variants by P Value Category",
   sep = ","
@@ -42,6 +46,7 @@ title_txt <- paste(gene_target, title_cancer_type,
 pt <- get_violin_box_polyphen_score_by_pval_category(df,
   title_txt = title_txt,
   size_col = size_col,
+  var_label_col = var_label_col,
   xlabel = xlabel,
   ylabel = ylabel,
   annotate_flag = TRUE,

@@ -177,7 +177,7 @@ process_polyphen_data_with_pval <- function(df,
     dplyr::mutate(pval_category = factor(pval_category)) %>%
     dplyr::mutate(LOG10AF = -log10(AF)) %>%
     dplyr::mutate(LOG10PVAL = -log10(Pvalue)) %>%
-    dplyr::mutate(VarLabel = variant_id)
+    dplyr::mutate(VarLabel = locus)
 
 
   df <- df %>%
@@ -201,10 +201,12 @@ process_polyphen_data_with_pval <- function(df,
 
   # Select top n lower and upper bound outliers
   top_lower_outliers <- df %>%
+    dplyr::group_by(pval_category) %>%
     dplyr::filter(is_lower_outlier) %>%
     dplyr::slice_min(polyphen_score, n = n_outliers, with_ties = FALSE)
 
   top_upper_outliers <- df %>%
+    dplyr::group_by(pval_category) %>%
     dplyr::filter(is_upper_outlier) %>%
     dplyr::slice_max(polyphen_score, n = n_outliers, with_ties = FALSE)
 
@@ -216,6 +218,6 @@ process_polyphen_data_with_pval <- function(df,
     dplyr::mutate(VarLabel = ifelse(row_id %in% unique(top_outliers$row_id),
       VarLabel, ""
     ))
-  
-  return (df)
+
+  return(df)
 }

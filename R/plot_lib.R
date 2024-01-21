@@ -19,9 +19,9 @@ polyphen_label_color_mappings <- c(
   "probably" = "#CC0000"
 )
 
-theme_publication <- function(base_size = 12, 
-                              base_family = "Helvetica", 
-                              base_face = "bold", 
+theme_publication <- function(base_size = 12,
+                              base_family = "Helvetica",
+                              base_face = "bold",
                               legend_bottom = TRUE) {
   if (legend_bottom) {
     loc <- "bottom"
@@ -257,6 +257,7 @@ get_violin_box_FUSE_score_by_pval_category <- function(df,
 get_violin_box_polyphen_score_by_pval_category <- function(df,
                                                            title_txt,
                                                            size_col,
+                                                           var_label_col,
                                                            xlabel,
                                                            ylabel,
                                                            legend_bottom = FALSE,
@@ -267,7 +268,6 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
                                                            annotate_flag = FALSE,
                                                            shape_manual = c(16, 18),
                                                            ybreaks = NULL) {
-  
   pt <- ggplot(df, aes(x = pval_category, y = polyphen_score)) +
     geom_violin(trim = FALSE) +
     geom_boxplot(width = 0.1, fill = "white", outlier.shape = NA) +
@@ -298,15 +298,17 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
       aes(
         x = pval_category,
         y = polyphen_score,
-        label = ClinVarLabelP
+        label = .data[[var_label_col]]
       ),
       size = annotate_text_size,
       max.overlaps = 50
     )
   }
-  
-  pt <- pt +theme_publication(base_size = x_y_font_size, 
-                              legend_bottom = legend_bottom)
+
+  pt <- pt + theme_publication(
+    base_size = x_y_font_size,
+    legend_bottom = legend_bottom
+  )
   pt <- pt +
     theme(
       plot.title = element_text(
@@ -322,12 +324,12 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
       axis.line = element_line(colour = "black")
     ) +
     theme_cowplot()
-  
+
   if (!is.null(ybreaks)) {
     pt <- pt + scale_y_continuous(
       breaks = ybreaks
     )
   }
-  
+
   return(pt)
 }
