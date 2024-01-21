@@ -56,6 +56,7 @@ for (cancer_type in unique(df$description)) {
     var_label_col = var_label_col,
     xlabel = xlabel,
     ylabel = ylabel,
+    title_font_size = 10,
     annotate_flag = TRUE,
     annotate_text_size = 5,
     ybreaks = seq(-1, 1, by = 0.25)
