@@ -16,7 +16,7 @@ source("R/io_utils.R")
 source("R/util_lib.R")
 source("R/plot_lib.R")
 
-gene <- "APC"
+gene <- "BRCA1"
 ppt_filename <- "20240117_BRCA1_Polyphen_PVal.pptx"
 size_col <- "beta"
 xlabel <- "P Value Category"
@@ -25,10 +25,21 @@ ylabel <- "Polyphen Score"
 df <- read_csv_polyphen_df(gene)
 
 
+cancer_filenames <- getCancerFiles(gene)
+genebass_output <- read_genebass_data_with_variant_process(cancer_filenames = cancer_filenames,
+                                                           tissue = tissue)
+print(head(genebass_output))
+
+vep_df <- read_csv_polyphen_df(gene)
+
+
+df <- genebass_output %>%
+  inner_join(vep_df, by="variant_id")
+
 # Breast Cancer ----
 cancer_type <- "Breast cancer"
 title_cancer_type <- "Breast Cancer"
-df2 <- process_polyphen_data_with_pval(df,
+df <- get_genebass_polyphen_data_with_pval(data,
   description_val = cancer_type,
   percent_IQR = 0.25
 )

@@ -69,11 +69,14 @@ getCorrelation <- function(label,
 }
 
 
-getCancerFiles <- function(directory_path, cancer.pattern) {
+getCancerFiles <- function(gene) {
+  setwd("~/github/ArchitectureOfCancer/")
+  directory_path <- paste0(gene_data, gene)
+  
   # List all files in the directory that match the pattern cancer.pattern
   matching_files <- list.files(
     path = directory_path,
-    pattern = paste0(cancer.pattern, "_.*Cancer.csv")
+    pattern = paste0(gene, "_.*Cancer.csv")
   )
 
   cancer_filenames <- list()
@@ -81,7 +84,7 @@ getCancerFiles <- function(directory_path, cancer.pattern) {
   # Iterate over the matching files and build the mapping
   for (file in matching_files) {
     # Extract the cancer label from the filename
-    pattern.toextract <- paste0(cancer.pattern, "_(.*).csv")
+    pattern.toextract <- paste0(gene, "_(.*).csv")
     label <- sub(pattern.toextract, "\\1", file)
     # label <- sub("BRCA1_(.*).csv", "\\1", file)
 
@@ -175,7 +178,10 @@ read_vep_file <- function(filename, gene_val) {
         is.na(polyphen_label) ~ "unknown",
         TRUE ~ polyphen_label
       )
-    )
+    ) %>%
+    dplyr::select(locus, alleles, variant_id, description, AF, AF_bin, BETA,
+                  consequence, polyphen, polyphen_label, polyphen_score,
+                  polyphen_label_simplified)
   # %>%
   #   dplyr::rename("polyphen_pval" = "Pvalue")
 
