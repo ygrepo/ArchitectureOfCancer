@@ -179,7 +179,8 @@ read_vep_file <- function(filename, gene_val) {
         TRUE ~ polyphen_label
       )
     ) %>%
-    dplyr::select(locus, alleles, variant_id, description, AF, AF_bin, BETA,
+    dplyr::select(locus, alleles, variant_id, description, Pvalue,
+                  AF, AF_bin, BETA,
                   consequence, polyphen, polyphen_label, polyphen_score,
                   polyphen_label_simplified)
   # %>%

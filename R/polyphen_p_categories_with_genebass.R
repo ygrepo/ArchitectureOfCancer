@@ -17,6 +17,7 @@ source("R/util_lib.R")
 source("R/plot_lib.R")
 
 gene <- "BRCA1"
+tissue <- "BreastCancer"
 ppt_filename <- "20240117_BRCA1_Polyphen_PVal.pptx"
 size_col <- "beta"
 xlabel <- "P Value Category"

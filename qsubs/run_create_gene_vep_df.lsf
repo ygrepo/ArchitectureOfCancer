@@ -1,7 +1,7 @@
 #!/bin/bash
 #BSUB -J gene_annotation_search                           # Job name
 #BSUB -P acc_DiseaseGeneCell   # allocation account
-#BSUB -q express                                  # queue
+#BSUB -q premium                                  # queue
 #BSUB -n 8                                            # number of compute cores = 1
 #BSUB -R rusage[mem=80000]              # 80GB of memory
 #BSUB -W 02:00                                   # walltime in HH:MM
