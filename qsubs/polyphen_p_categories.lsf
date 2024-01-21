@@ -1,5 +1,5 @@
 #!/bin/bash
-#BSUB -J createGeneVep                           # Job name
+#BSUB -J polyphencomp                           # Job name
 #BSUB -P acc_DiseaseGeneCell   # allocation account
 #BSUB -q express                                  # queue
 #BSUB -n 8                                            # number of compute cores = 1
@@ -10,4 +10,4 @@
 
 module purge
 module load R/4.2.0
-Rscript ~/github/ArchitectureOfCancer/R/create_gene_vep_df.R BRCA1
+Rscript ~/github/ArchitectureOfCancer/R/polyphen_p_categories.R BRCA1

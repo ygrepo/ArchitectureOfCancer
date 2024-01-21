@@ -1,5 +1,5 @@
 #!/bin/bash
-#BSUB -J gene_annotation_search                           # Job name
+#BSUB -J createGeneVep                           # Job name
 #BSUB -P acc_DiseaseGeneCell   # allocation account
 #BSUB -q premium                                  # queue
 #BSUB -n 8                                            # number of compute cores = 1

@@ -16,178 +16,52 @@ source("R/io_utils.R")
 source("R/util_lib.R")
 source("R/plot_lib.R")
 
-gene <- "BRCA1"
-ppt_filename <- paste0("20240117_", gene, "_Polyphen_PVal.pptx")
+#Get the gene name from the command line arguments
+args <- commandArgs(trailingOnly = TRUE)
+if (length(args) == 0) {
+  stop("No gene name provided. Usage: Rscript polyphen_p_categories.R <gene_name>", call. = FALSE)
+}
+gene <- args[1]
+
+ppt_filename <- paste0("20240121_", gene, "_Polyphen_PVal.pptx")
 size_col <- "BETA"
 var_label_col <- "VarLabel"
 xlabel <- "P Value Category"
 ylabel <- "Polyphen Score"
+percent_IQRValue <- 0.25
 
 df <- read_csv_polyphen_df(gene)
 
 
-# Breast Cancer ----
-cancer_type <- "Breast cancer"
-title_cancer_type <- "Breast Cancer"
-df <- process_polyphen_data_with_pval(df,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
+for (cancer_type in unique(df$description)) {
+  if (is.na(cancer_type) | (cancer_type == "")) {
+    next
+  }
+  print(cancer_type)
+  cancer_df <- process_polyphen_data_with_pval(df,
+    description_val = cancer_type,
+    percent_IQR = percent_IQRValue
+  )
 
-df1 <- df %>%
-  filter((is_upper_outlier == TRUE) & (pval_category == "[0.01, 0.1["))
 
-title_txt <- paste(gene, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
+  title_txt <- paste(gene, cancer_type,
+    "Polyphen Score",
+    "Variants by P Value Category",
+    sep = ","
+  )
 
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  var_label_col = var_label_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
+  pt <- get_violin_box_polyphen_score_by_pval_category(df = cancer_df,
+    title_txt = title_txt,
+    size_col = size_col,
+    var_label_col = var_label_col,
+    xlabel = xlabel,
+    ylabel = ylabel,
+    annotate_flag = TRUE,
+    annotate_text_size = 5,
+    ybreaks = seq(-1, 1, by = 0.25)
+  )
+  pt
 
-save_to_ppt(filename = ppt_filename, pt)
+  save_to_ppt(filename = ppt_filename, pt)
+}
 
-# Lung cancer ----
-cancer_type <- "Lung cancer"
-title_cancer_type <- "Lung Cancer"
-df <- get_genebass_polyphen_data_with_pval(data,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
-
-title_txt <- paste(gene_target, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
-
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
-
-save_to_ppt(filename = ppt_filename, pt)
-
-# Prostate cancer ----
-cancer_type <- "Prostate cancer"
-title_cancer_type <- "Prostate Cancer"
-df <- get_genebass_polyphen_data_with_pval(data,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
-
-title_txt <- paste(gene_target, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
-
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
-
-save_to_ppt(filename = ppt_filename, pt)
-
-# Bowel cancer ----
-cancer_type <- "Bowel cancer in the colon or rectum"
-title_cancer_type <- "Bowel Cancer"
-df <- get_genebass_polyphen_data_with_pval(data,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
-
-title_txt <- paste(gene_target, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
-
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
-
-save_to_ppt(filename = ppt_filename, pt)
-
-# Rare cancer ----
-cancer_type <- "Rare cancer"
-title_cancer_type <- "Rare Cancer"
-df <- get_genebass_polyphen_data_with_pval(data,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
-
-title_txt <- paste(gene_target, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
-
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
-
-save_to_ppt(filename = ppt_filename, pt)
-
-# "Cancer code, self-reported ----
-cancer_type <- "Cancer code, self-reported"
-title_cancer_type <- "Cancer code, self-reported"
-df <- get_genebass_polyphen_data_with_pval(data,
-  description_val = cancer_type,
-  percent_IQR = 0.25
-)
-
-title_txt <- paste(gene_target, title_cancer_type,
-  "Polyphen Score",
-  "Variants by P Value Category",
-  sep = ","
-)
-
-pt <- get_violin_box_polyphen_score_by_pval_category(df,
-  title_txt = title_txt,
-  size_col = size_col,
-  xlabel = xlabel,
-  ylabel = ylabel,
-  annotate_flag = TRUE,
-  annotate_text_size = 5,
-  ybreaks = seq(-1, 1, by = 0.25)
-)
-pt
-
-save_to_ppt(filename = ppt_filename, pt)
