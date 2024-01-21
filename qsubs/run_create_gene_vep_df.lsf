@@ -4,7 +4,7 @@
 #BSUB -q premium                                  # queue
 #BSUB -n 8                                            # number of compute cores = 1
 #BSUB -R rusage[mem=80000]              # 80GB of memory
-#BSUB -W 02:00                                   # walltime in HH:MM
+#BSUB -W 15:00                                   # walltime in HH:MM
 #BSUB -o %J.log                              # output log (%J : JobID)
 #BSUB -eo %J.stderr                             # error log
 
