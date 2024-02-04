@@ -19,22 +19,55 @@ polyphen_label_color_mappings <- c(
   "probably" = "#CC0000"
 )
 
+beta_pval_cols <- c("up" = "red", "down" = "#26b3ff", "ns" = "grey")
+beta_pval_sizes <- c("up" = 3, "down" = 3, "ns" = 2)
+beta_pval_alphas <- c("up" = 1, "down" = 1, "ns" = 0.5)
+
 theme_publication <- function(base_size = 12,
                               base_family = "Helvetica",
                               base_face = "bold",
                               legend_bottom = TRUE) {
-  if (legend_bottom) {
-    loc <- "bottom"
+  if (!is.null(legend_bottom)) {
+    if (legend_bottom) {
+      loc <- "bottom"
+      orientation <- "horizontal"
+    } else {
+      loc <- "right"
+      orientation <- "vertical"
+    }
 
-    orientation <- "horizontal"
-  } else {
-    loc <- "right"
-
-    orientation <- "vertical"
+    return(ggthemes::theme_foundation(base_size = base_size, base_family = base_family)
+    + theme(
+        plot.title = element_text(
+          face = base_face,
+          size = rel(1.2), hjust = 0.5
+        ),
+        text = element_text(),
+        panel.background = element_rect(colour = NA),
+        plot.background = element_rect(colour = NA),
+        panel.border = element_rect(colour = NA),
+        axis.title = element_text(face = base_face, size = rel(1)),
+        axis.title.y = element_text(angle = 90, vjust = 2),
+        axis.title.x = element_text(vjust = -0.2),
+        axis.text = element_text(),
+        axis.line = element_line(colour = "black"),
+        axis.ticks = element_line(),
+        panel.grid.major = element_line(colour = "#f0f0f0"),
+        panel.grid.minor = element_blank(),
+        legend.key = element_rect(colour = NA),
+        legend.position = loc,
+        legend.text = element_text(size = rel(1.2)),
+        legend.direction = orientation,
+        legend.key.size = unit(0.3, "cm"),
+        legend.spacing = unit(0, "cm"),
+        legend.title = element_text(face = "italic"),
+        plot.margin = unit(c(5, 5, 5, 5), "mm"),
+        strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
+        strip.text = element_text(face = base_face)
+      ))
   }
 
-  (ggthemes::theme_foundation(base_size = base_size, base_family = base_family)
-
+  return(ggthemes::theme_foundation(base_size = base_size, base_family = base_family)
   + theme(
       plot.title = element_text(
         face = base_face,
@@ -53,12 +86,7 @@ theme_publication <- function(base_size = 12,
       panel.grid.major = element_line(colour = "#f0f0f0"),
       panel.grid.minor = element_blank(),
       legend.key = element_rect(colour = NA),
-      legend.position = loc,
-      legend.text = element_text(size = rel(1.2)),
-      legend.direction = orientation,
-      legend.key.size = unit(0.3, "cm"),
-      legend.spacing = unit(0, "cm"),
-      legend.title = element_text(face = "italic"),
+      legend.position = "none",
       plot.margin = unit(c(5, 5, 5, 5), "mm"),
       strip.background = element_rect(colour = "#f0f0f0", fill = "#f0f0f0"),
       strip.text = element_text(face = base_face)
@@ -308,8 +336,7 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
   pt <- pt + theme_publication(
     base_size = x_y_font_size,
     legend_bottom = legend_bottom
-  )
-  pt <- pt +
+  ) +
     theme(
       plot.title = element_text(
         color = "black",
@@ -330,6 +357,91 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
       breaks = ybreaks
     )
   }
+
+  return(pt)
+}
+
+
+get_beta_pval_violin_plot <- function(df,
+                                      title_txt,
+                                      color_manual = beta_pval_cols,
+                                      font_size = 14,
+                                      legend_bottom = NULL) {
+  sign_df <- df %>%
+    dplyr::filter((beta_type == "down") |
+      (beta_type == "up"))
+
+  pt <- df %>%
+    ggplot2::ggplot(aes(
+      x = beta,
+      y = LOG10ADJPVAL
+    )) +
+    geom_point(aes(colour = beta_type),
+      alpha = 0.2,
+      shape = 16,
+      size = 1
+    ) +
+    geom_point(
+      data = df %>%
+        dplyr::filter(beta_type == "up"),
+      shape = 21,
+      size = 5,
+      fill = "firebrick",
+      colour = "black"
+    ) +
+    geom_point(
+      data = df %>%
+        dplyr::filter(beta_type == "down"),
+      shape = 21,
+      size = 5,
+      fill = "steelblue",
+      colour = "black"
+    ) +
+    labs(
+      x = "Beta",
+      y = "-log10(adj_p_value)",
+      title = title_txt,
+      color = "Beta"
+    ) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed"
+    ) +
+    geom_vline(
+      xintercept = c(-1, 2),
+      linetype = "dashed"
+    ) +
+   ggrepel::geom_label_repel(data = sign_df,
+                    aes(label = ClinVarLabelP),
+                    force = 10,
+                    size = 4
+                    #max.overlaps = 50
+    ) +
+    theme_publication(
+      base_size = font_size,
+      legend_bottom = legend_bottom
+    ) +
+    theme(
+      plot.title = element_text(
+        color = "black",
+        size = font_size,
+        face = "bold", hjust = 0.5
+      ),
+      axis.title.x = element_text(size = font_size, face = "bold"),
+      axis.title.y = element_text(size = font_size, face = "bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(colour = "black")
+    ) +
+    scale_x_continuous(
+      breaks = c(seq(-2, 6, 1)),
+      limits = c(-2, 6)
+    ) +
+    scale_y_continuous(
+      breaks = c(seq(0, 3, 0.5)),
+      limits = c(0, 3)
+    )
 
   return(pt)
 }
