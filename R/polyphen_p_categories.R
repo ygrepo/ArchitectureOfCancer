@@ -23,7 +23,7 @@ if (length(args) == 0) {
 }
 gene <- args[1]
 
-# gene <- "BRCA1"
+gene <- "BRCA1"
 
 ppt_filename <- paste0("20240210_", gene, "_Polyphen_PVal.pptx")
 size_col <- "BETA"
