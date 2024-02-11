@@ -33,11 +33,6 @@ ylabel <- "Polyphen Score"
 percent_IQRValue <- 0.25
 
 df <- read_csv_polyphen_df(gene)
-cancer_df <- process_polyphen_data_with_pval(df,
-  description_val = "Breast cancer",
-  percent_IQR = percent_IQRValue
-)
-
 
 for (cancer_type in unique(df$description)) {
   if (is.na(cancer_type) | (cancer_type == "")) {
