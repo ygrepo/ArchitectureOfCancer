@@ -221,3 +221,74 @@ process_polyphen_data_with_pval <- function(df,
 
   return(df)
 }
+
+# Define a function to perform Wilcoxon rank-sum test and adjust p-values
+perform_wilcoxon_test_polyphen_score_by_p_val_category <- function(group1, group2, df) {
+  # print(paste0(group1," ",group2))
+  wilcox_result <- wilcox.test(
+    df$polyphen_score[df$pval_category == group1],
+    df$polyphen_score[df$pval_category == group2]
+  )
+  p_value <- wilcox_result$p.value
+  return(p_value)
+}
+
+get_wilcoxon_test_pairwise <- function(df,
+                                       n_digits = 3) {
+  # Get unique levels of pval_category
+  levels <- unique(cancer_df$pval_category)
+
+  #  Initialize an empty dataframe to store the results
+  pairwise_results <- tibble(
+    group1 = character(),
+    group2 = character(),
+    p_value = numeric(),
+    adjusted_p_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+
+  # Perform pairwise comparisons between levels of pval_category
+  for (i in 1:length(levels)) {
+    for (j in (i + 1):length(levels)) {
+      group1 <- levels[i]
+      group2 <- levels[j]
+      if (is.na(group1) | is.na(group2)) {
+        next
+      }
+      p_value <- perform_wilcoxon_test_polyphen_score_by_p_val_category(
+        group1,
+        group2,
+        df %>%
+          filter(pval_category != "NA")
+      )
+      print(paste0("Pval:", p_value))
+      result_row <- tibble(
+        group1 = group1,
+        group2 = group2,
+        p_value = p_value,
+        adjusted_p_value = NA
+      )
+      pairwise_results <- rbind(pairwise_results, result_row)
+    }
+  }
+  # Adjust p-values
+  pairwise_results$adjusted_p_value <- p.adjust(pairwise_results$p_value, method = "BH")
+
+  pairwise_results <- pairwise_results %>%
+    filter(!duplicated(apply(
+      cbind(
+        pmin(group1, group2),
+        pmax(group1, group2)
+      ),
+      1,
+      paste,
+      collapse = ","
+    )))
+
+  pairwise_results$adjusted_p_value <- signif(pairwise_results$adjusted_p_value, 
+                                              digits = n_digits)
+  
+  # Print the results
+  print(pairwise_results)
+  return(pairwise_results)
+}

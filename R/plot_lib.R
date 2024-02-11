@@ -283,6 +283,7 @@ get_violin_box_FUSE_score_by_pval_category <- function(df,
 }
 
 get_violin_box_polyphen_score_by_pval_category <- function(df,
+                                                           p_val_df = NULL,
                                                            title_txt,
                                                            size_col,
                                                            var_label_col,
@@ -331,6 +332,16 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
       size = annotate_text_size,
       max.overlaps = 50
     )
+  }
+  
+  if (!is.null(p_val_df)) {
+  pt <- pt + ggprism::add_pvalue(p_val_df, 
+                        xmin = "group1",
+                        xmax = "group2",
+                        label = "adjusted_p_value",
+             y.position = "y.position",
+             remove.bracket = TRUE)
+#             bracket.shorten = p_val_df$bracket_shorten)
   }
 
   pt <- pt + theme_publication(

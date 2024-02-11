@@ -16,14 +16,16 @@ source("R/io_utils.R")
 source("R/util_lib.R")
 source("R/plot_lib.R")
 
-#Get the gene name from the command line arguments
+# Get the gene name from the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) == 0) {
   stop("No gene name provided. Usage: Rscript polyphen_p_categories.R <gene_name>", call. = FALSE)
 }
 gene <- args[1]
 
-ppt_filename <- paste0("20240121_", gene, "_Polyphen_PVal.pptx")
+# gene <- "BRCA1"
+
+ppt_filename <- paste0("20240210_", gene, "_Polyphen_PVal.pptx")
 size_col <- "BETA"
 var_label_col <- "VarLabel"
 xlabel <- "P Value Category"
@@ -31,6 +33,10 @@ ylabel <- "Polyphen Score"
 percent_IQRValue <- 0.25
 
 df <- read_csv_polyphen_df(gene)
+cancer_df <- process_polyphen_data_with_pval(df,
+  description_val = "Breast cancer",
+  percent_IQR = percent_IQRValue
+)
 
 
 for (cancer_type in unique(df$description)) {
@@ -50,7 +56,13 @@ for (cancer_type in unique(df$description)) {
     sep = ","
   )
 
-  pt <- get_violin_box_polyphen_score_by_pval_category(df = cancer_df,
+  pairwise_results <- get_wilcoxon_test_pairwise(cancer_df)
+  pairwise_results$y.position <- c(2.55, 2.3, 2)
+  pairwise_results
+
+  pt <- get_violin_box_polyphen_score_by_pval_category(
+    df = cancer_df,
+    p_val_df = pairwise_results,
     title_txt = title_txt,
     size_col = size_col,
     var_label_col = var_label_col,
@@ -65,4 +77,3 @@ for (cancer_type in unique(df$description)) {
 
   save_to_ppt(filename = ppt_filename, pt)
 }
-
