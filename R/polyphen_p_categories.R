@@ -23,9 +23,7 @@ if (length(args) == 0) {
 }
 gene <- args[1]
 
-gene <- "BRCA1"
-
-ppt_filename <- paste0("20240210_", gene, "_Polyphen_PVal.pptx")
+ppt_filename <- "20240211_Polyphen_PVal.pptx"
 size_col <- "BETA"
 var_label_col <- "VarLabel"
 xlabel <- "P Value Category"
@@ -63,7 +61,7 @@ for (cancer_type in unique(df$description)) {
     var_label_col = var_label_col,
     xlabel = xlabel,
     ylabel = ylabel,
-    title_font_size = 10,
+    title_font_size = 8,
     annotate_flag = TRUE,
     annotate_text_size = 5,
     ybreaks = seq(-1, 1, by = 0.25)
