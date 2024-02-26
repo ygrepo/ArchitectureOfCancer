@@ -72,7 +72,7 @@ getCorrelation <- function(label,
 getCancerFiles <- function(gene) {
   setwd("~/github/ArchitectureOfCancer/")
   directory_path <- paste0(gene_data, gene)
-  
+
   # List all files in the directory that match the pattern cancer.pattern
   matching_files <- list.files(
     path = directory_path,
@@ -179,10 +179,12 @@ read_vep_file <- function(filename, gene_val) {
         TRUE ~ polyphen_label
       )
     ) %>%
-    dplyr::select(locus, alleles, variant_id, description, Pvalue,
-                  AF, AF_bin, BETA,
-                  consequence, polyphen, polyphen_label, polyphen_score,
-                  polyphen_label_simplified)
+    dplyr::select(
+      locus, alleles, variant_id, description, Pvalue,
+      AF, AF_bin, BETA,
+      consequence, polyphen, polyphen_label, polyphen_score,
+      polyphen_label_simplified
+    )
   # %>%
   #   dplyr::rename("polyphen_pval" = "Pvalue")
 
@@ -222,7 +224,9 @@ read_csv_gene_df <- function(filename, delim = " ") {
 
 read_csv_polyphen_df <- function(gene) {
   filename <- paste0(gene_data, gene, "/polyphen.csv")
-  return(read_csv_gene_df(filename))
+  df <- read_csv_gene_df(filename)
+  df$gene <- gene
+  return(df)
 }
 
 
@@ -238,6 +242,18 @@ read_csv_data <- function(filename, delim = " ") {
   filename <- paste0(result_data_path, filename)
   return(dplyr::as_tibble(readr::read_delim(filename, delim = delim)))
 }
+
+read_csv_input_data <- function(filename, delim = " ", colnames = NULL) {
+  setwd("~/github/ArchitectureOfCancer")
+  filename <- paste0(input_data, filename)
+  if (is.null(colnames)) {
+    return(dplyr::as_tibble(readr::read_delim(filename, delim = delim)))
+  }
+  return(dplyr::as_tibble(readr::read_delim(filename,
+    delim = delim, col_names = colnames
+  )))
+}
+
 
 
 print_html_df <- function(df,

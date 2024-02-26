@@ -333,15 +333,16 @@ get_violin_box_polyphen_score_by_pval_category <- function(df,
       max.overlaps = 50
     )
   }
-  
+
   if (!is.null(p_val_df)) {
-  pt <- pt + ggprism::add_pvalue(p_val_df, 
-                        xmin = "group1",
-                        xmax = "group2",
-                        label = "adjusted_p_value",
-             y.position = "y.position",
-             remove.bracket = TRUE)
-#             bracket.shorten = p_val_df$bracket_shorten)
+    pt <- pt + ggprism::add_pvalue(p_val_df,
+      xmin = "group1",
+      xmax = "group2",
+      label = "adjusted_p_value",
+      y.position = "y.position",
+      remove.bracket = TRUE
+    )
+    #             bracket.shorten = p_val_df$bracket_shorten)
   }
 
   pt <- pt + theme_publication(
@@ -422,11 +423,12 @@ get_beta_pval_violin_plot <- function(df,
       xintercept = c(-1, 2),
       linetype = "dashed"
     ) +
-   ggrepel::geom_label_repel(data = sign_df,
-                    aes(label = ClinVarLabelP),
-                    force = 10,
-                    size = 4
-                    #max.overlaps = 50
+    ggrepel::geom_label_repel(
+      data = sign_df,
+      aes(label = ClinVarLabelP),
+      force = 10,
+      size = 4
+      # max.overlaps = 50
     ) +
     theme_publication(
       base_size = font_size,
@@ -452,6 +454,66 @@ get_beta_pval_violin_plot <- function(df,
     scale_y_continuous(
       breaks = c(seq(0, 3, 0.5)),
       limits = c(0, 3)
+    )
+
+  return(pt)
+}
+
+
+get_pval_category_adj_pval_scatter_plot <- function(df,
+                                                    title_txt,
+                                                    font_size = 14,
+                                                    legend_bottom = NULL,
+                                                    max_overlaps_val = 50) {
+  pt <- df %>%
+    ggplot2::ggplot(aes(
+      x = pval_cat,
+      y = LOG10_adj_pval
+    )) +
+    geom_point(
+      data = df,
+      shape = 21,
+      size = 5,
+      fill = "steelblue",
+      colour = "black"
+    ) +
+    labs(
+      x = "Significance Test",
+      y = "-log10(adj_p_value)",
+      title = title_txt,
+      color = "pval_cat"
+    ) +
+    geom_hline(
+      yintercept = -log10(0.05),
+      linetype = "dashed"
+    ) +
+    ggrepel::geom_label_repel(
+      data = df,
+      aes(label = gene),
+      force = 10,
+      size = 4,
+      max.overlaps = max_overlaps_val
+    ) +
+    theme_publication(
+      base_size = font_size,
+      legend_bottom = legend_bottom
+    ) +
+    theme(
+      plot.title = element_text(
+        color = "black",
+        size = font_size,
+        face = "bold", hjust = 0.5
+      ),
+      axis.title.x = element_text(size = font_size, face = "bold"),
+      axis.title.y = element_text(size = font_size, face = "bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(colour = "black")
+    ) +
+    scale_y_continuous(
+      breaks = c(seq(0, 1.5, 0.5)),
+      limits = c(0, 1.5)
     )
 
   return(pt)

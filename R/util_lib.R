@@ -161,6 +161,25 @@ get_genebass_polyphen_data_with_pval <- function(df,
     ))
 }
 
+
+create_pval_category <- function(df,
+                                 gene_val,
+                                 description_val) {
+  df <- df %>%
+    dplyr::filter((description == description_val) & (gene == gene_val)) %>%
+    dplyr::filter(!is.na(polyphen_score)) %>%
+    dplyr::mutate(pval_category = case_when(
+      Pvalue <= 0.01 ~ "[0, 0.01]",
+      (0.01 < Pvalue) & (Pvalue <= 0.1) ~ "]0.01, 0.1]",
+      (0.1 < Pvalue) ~ "]0.1, 1]",
+      TRUE ~ NA_character_
+    )) %>%
+    dplyr::filter(!is.na(pval_category)) %>%
+    dplyr::mutate(pval_category = factor(pval_category))
+
+  return(df)
+}
+
 process_polyphen_data_with_pval <- function(df,
                                             description_val,
                                             n_outliers = 5,
@@ -170,8 +189,8 @@ process_polyphen_data_with_pval <- function(df,
     dplyr::filter(!is.na(polyphen_score)) %>%
     dplyr::mutate(pval_category = case_when(
       Pvalue <= 0.01 ~ "[0, 0.01]",
-      (0.01 < Pvalue) & (Pvalue < 0.1) ~ "[0.01, 0.1[",
-      (0.1 < Pvalue) ~ "[0.1, 1[",
+      (0.01 < Pvalue) & (Pvalue <= 0.1) ~ "]0.01, 0.1]",
+      (0.1 < Pvalue) ~ "]0.1, 1]",
       TRUE ~ NA_character_
     )) %>%
     dplyr::mutate(pval_category = factor(pval_category)) %>%
@@ -223,72 +242,124 @@ process_polyphen_data_with_pval <- function(df,
 }
 
 # Define a function to perform Wilcoxon rank-sum test and adjust p-values
-perform_wilcoxon_test_polyphen_score_by_p_val_category <- function(group1, group2, df) {
+get_wilcoxon_test_pairwise <- function(df1, df2, wilcox_method = "stats") {
   # print(paste0(group1," ",group2))
-  wilcox_result <- wilcox.test(
-    df$polyphen_score[df$pval_category == group1],
-    df$polyphen_score[df$pval_category == group2]
-  )
+  if (wilcox_method == "stats") {
+    wilcox_result <- stats::wilcox.test(df1, df2)
+  }
+  if (wilcox_method == "exactRankTest") {
+    wilcox_result <- exactRankTests::wilcox.exact(df1, df2, exact = TRUE)
+  }
   p_value <- wilcox_result$p.value
+  # print(paste0("Pval:", p_value))
   return(p_value)
 }
 
-get_wilcoxon_test_pairwise <- function(df,
-                                       n_digits = 3) {
-  # Get unique levels of pval_category
-  levels <- unique(cancer_df$pval_category)
 
-  #  Initialize an empty dataframe to store the results
+reorder_p_val_categories <- function(df) {
+  df <- df %>%
+    dplyr::mutate(temp = group1, group1 = group2, group2 = temp) %>%
+    dplyr::select(-temp) %>%
+    dplyr::slice(c(2, 3, 1)) %>%
+    mutate(
+      temp_group1 = case_when(
+        group1 == "]0.1, 1]" & group2 == "]0.01, 0.1]" ~ group2,
+        TRUE ~ group1
+      ),
+      temp_group2 = case_when(
+        group1 == "]0.1, 1]" & group2 == "]0.01, 0.1]" ~ group1,
+        TRUE ~ group2
+      ),
+      group1 = temp_group1,
+      group2 = temp_group2
+    ) %>%
+    select(-temp_group1, -temp_group2)
+
+  return(df)
+}
+
+perform_polyphen_score_signif_assoc_by_p_val_category <- function(df,
+                                                                  cancer_type,
+                                                                  gene_val,
+                                                                  n_digits = 3) {
+  df <- df %>%
+    dplyr::filter((description == cancer_type) & (gene == gene_val))
+
+  # Ensure pval_category is treated as a character vector
+  df$pval_category <- as.character(df$pval_category)
+
+  # Get unique levels of pval_category, excluding true NA values
+  levels <- unique(df$pval_category)
+  print(levels)
+  # Initialize an empty dataframe to store the results
   pairwise_results <- tibble(
+    cancer_type = character(),
+    gene = character(),
     group1 = character(),
     group2 = character(),
-    p_value = numeric(),
-    adjusted_p_value = numeric(),
-    stringsAsFactors = FALSE
+    p_value = numeric()
   )
 
+  if (length(levels) == 1) {
+    print("Only one pval_category")
+    pairwise_results <- tibble(
+      cancer_type = cancer_type,
+      gene = gene_val,
+      group1 = NA,
+      group2 = NA,
+      p_value = NA
+    )
+    return(pairwise_results)
+  }
+
   # Perform pairwise comparisons between levels of pval_category
-  for (i in 1:length(levels)) {
+  for (i in 1:(length(levels) - 1)) {
     for (j in (i + 1):length(levels)) {
       group1 <- levels[i]
       group2 <- levels[j]
-      if (is.na(group1) | is.na(group2)) {
+
+      # print(paste0("i:", i, ",j:", j, "group1:", group1, ",group2:", group2))
+
+      # Ensure group comparisons are only made for valid groups
+      if ((length(group1) == 0) |
+        is.na(group1) |
+        (group1 == "") |
+        (length(group2) == 0) |
+        is.na(group2) |
+        (group2 == "")) {
+        print("Skip")
         next
       }
-      p_value <- perform_wilcoxon_test_polyphen_score_by_p_val_category(
-        group1,
-        group2,
-        df %>%
-          filter(pval_category != "NA")
-      )
-      print(paste0("Pval:", p_value))
+      if (group1 == group2) {
+        print("Skip")
+        next
+      }
+      df1 <- df$polyphen_score[df$pval_category == group1]
+      df2 <- df$polyphen_score[df$pval_category == group2]
+
+      p_value <- get_wilcoxon_test_pairwise(df1, df2)
+      # print(paste0("Pval:", p_value))
+
       result_row <- tibble(
+        cancer_type = cancer_type,
+        gene = gene_val,
         group1 = group1,
         group2 = group2,
-        p_value = p_value,
-        adjusted_p_value = NA
+        p_value = p_value
       )
+
       pairwise_results <- rbind(pairwise_results, result_row)
     }
   }
-  # Adjust p-values
-  pairwise_results$adjusted_p_value <- p.adjust(pairwise_results$p_value, method = "BH")
 
+  # Remove duplicated pairs, considering ordering
   pairwise_results <- pairwise_results %>%
-    filter(!duplicated(apply(
-      cbind(
-        pmin(group1, group2),
-        pmax(group1, group2)
-      ),
-      1,
-      paste,
-      collapse = ","
-    )))
+    dplyr::distinct(group1, group2, .keep_all = TRUE)
 
-  pairwise_results$adjusted_p_value <- signif(pairwise_results$adjusted_p_value, 
-                                              digits = n_digits)
-  
-  # Print the results
-  print(pairwise_results)
-  return(pairwise_results)
+
+  # Print and return the results
+  # print(pairwise_results)
+
+  return(reorder_p_val_categories(pairwise_results))
+  #  return(reorder_p_val_categories(pairwise_results))
 }
