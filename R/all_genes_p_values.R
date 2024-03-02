@@ -101,6 +101,7 @@ cancer_types <- unique(result_df$description)
 cancer_types
 genes <- unique(result_df$gene)
 genes
+genes <- c("BRCA1", "BRCA2", "PALB2")
 significan_test_df <- tibble()
 for (cancer_type in cancer_types) {
   for (gene in genes) {
@@ -138,6 +139,7 @@ significan_test_df <- significan_test_df %>%
 
 cancer_types <- unique(significan_test_df$cancer_type)
 cancer_types
+cancer_types <- c("Breast cancer")
 significan_test_adj_pval_df <- tibble()
 for (cancer_type in cancer_types) {
   print(paste0("Cancer type:", cancer_type))
@@ -164,7 +166,7 @@ df2 %>%
   filter(gene == "BRCA2") %>%
   filter(pval_cat == "[0, 0.01]]0.01, 0.1]")
 
-filename <- "20240225_Polyphen_Genes_Significance_Tests_Cancer_type.csv"
+filename <- "20240302_Polyphen_Genes_Significance_Tests_BreastCancer_type.csv"
 write_csv_data(df = significan_test_adj_pval_df, filename = filename)
 
 
@@ -173,12 +175,15 @@ pt <- get_pval_category_adj_pval_scatter_plot(df = df2,
                                         title_txt = title_txt,
                                         max_overlaps_val = 50
                                         )
-ppt_filename <- "20240225_Polyphen_Significance_Association_Test.pptx"
+pt
+ppt_filename <- "20240302_Polyphen_Significance_Association_Test.pptx"
 save_to_ppt(filename = ppt_filename, pt)
 
 title_txt <- "All Cancers, Polyphen Score Significance Association Test"
 pt <- get_pval_category_adj_pval_scatter_plot(df = significan_test_adj_pval_df,
                                               title_txt = title_txt,
-                                              max_overlaps_val = 200
+                                              max_overlaps_val = 50
 )
 pt
+save_to_ppt(filename = ppt_filename, pt)
+
