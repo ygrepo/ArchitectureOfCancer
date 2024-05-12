@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 
 input_data <- "data/"
-gene_data <- "data/genes/"
+gene_data_path <- "data/genes/"
 figure_path <- "outputs/figures/"
 result_data_path <- "outputs/data/"
 slides_path <- "outputs/slides/"
@@ -70,8 +70,8 @@ getCorrelation <- function(label,
 
 
 getCancerFiles <- function(gene) {
-  setwd("~/github/ArchitectureOfCancer/")
-  directory_path <- paste0(gene_data, gene)
+  directory_path <- paste0(gene_data_path, gene)
+  print(paste0("Reading data from:", directory_path))
 
   # List all files in the directory that match the pattern cancer.pattern
   matching_files <- list.files(
@@ -100,9 +100,7 @@ getCancerFiles <- function(gene) {
 }
 
 get_vep_files <- function(filename) {
-  setwd("~/github/ArchitectureOfCancer")
-  filename <- paste0(gene_data, filename)
-
+  filename <- paste0(gene_data_path, filename)
   print(paste0("Reading data from:", filename))
 
   # Read lines from the file
@@ -200,21 +198,20 @@ read_genebass_data_with_variant_process <- function(tissue, cancer_filenames) {
     dplyr::mutate(variant_id = substr(variant_id, 4, nchar(variant_id))) %>%
     dplyr::rename("genebass_consequence" = "consequence") %>%
     dplyr::arrange(variant_id) %>%
-    dplyr::rename("genebass_pval" = "pval")
+    dplyr::rename("genebass_pval" = "pval") %>%
+    dplyr::mutate(shgvsp = sub("^ENSP\\d+\\.\\d+:p\\.", "p.", hgvsp))
 
   return(genebass_output)
 }
 
 
 write_csv_gene_df <- function(df, filename, gene, delim = " ") {
-  setwd("~/github/ArchitectureOfCancer/")
-  filename <- paste0(gene_data, gene, "/", filename)
+  filename <- paste0(gene_data_path_path, gene, "/", filename)
   print(paste0("Saving data to:", filename))
   readr::write_delim(df, filename, delim = delim)
 }
 
 read_csv_gene_df <- function(filename, delim = " ") {
-  setwd("~/github/ArchitectureOfCancer/")
   print(paste0("Reading data from:", filename))
   df <- as_tibble(read.table(filename,
     header = TRUE, sep = " "
@@ -223,7 +220,7 @@ read_csv_gene_df <- function(filename, delim = " ") {
 }
 
 read_csv_polyphen_df <- function(gene) {
-  filename <- paste0(gene_data, gene, "/polyphen.csv")
+  filename <- paste0(gene_data_path, gene, "/polyphen.csv")
   df <- read_csv_gene_df(filename)
   df$gene <- gene
   return(df)
@@ -231,20 +228,17 @@ read_csv_polyphen_df <- function(gene) {
 
 
 write_csv_data <- function(df, filename, delim = " ") {
-  setwd("~/github/ArchitectureOfCancer/")
   filename <- paste0(result_data_path, filename)
   print(paste0("Saving data to:", filename))
   readr::write_delim(df, filename, delim = delim)
 }
 
 read_csv_data <- function(filename, delim = " ") {
-  setwd("~/github/ArchitectureOfCancer")
   filename <- paste0(result_data_path, filename)
   return(dplyr::as_tibble(readr::read_delim(filename, delim = delim)))
 }
 
 read_csv_input_data <- function(filename, delim = " ", colnames = NULL) {
-  setwd("~/github/ArchitectureOfCancer")
   filename <- paste0(input_data, filename)
   if (is.null(colnames)) {
     return(dplyr::as_tibble(readr::read_delim(filename, delim = delim)))
@@ -273,8 +267,22 @@ print_html_df <- function(df,
 }
 
 
+save_plot <- function(filename, 
+                      pt,
+                      width_value = 10,
+                      height_value = 8,
+                      dpi_value = 300
+                      ) {
+  filename <- paste0(figure_path, filename)
+  print(paste0("Saving to:", filename))
+  ggsave(filename = filename, 
+         plot = pt, 
+         width = width_value, 
+         height = height_value, 
+         dpi = dpi_value)
+}
+
 save_to_ppt <- function(filename, pt) {
-  setwd("~/github/ArchitectureOfCancer")
   filename <- paste0(slides_path, filename)
   print(paste0("Saving to:", filename))
   graph2ppt(pt, filename, width = 7, height = 7, append = TRUE)
