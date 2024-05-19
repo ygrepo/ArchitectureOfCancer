@@ -1,0 +1,107 @@
+---
+title: "RealtionShip_BETAvsAF"
+author: "Adon Chawe"
+date: '2023-09-30'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: false
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(readr)
+library(UpSetR)
+library(ggvenn)
+library(DT)
+library(data.table)
+library(TrumpetPlots)
+```
+
+## General
+
+In order to visualise how Effect sizes are associated with Allele Frequerncy, I plotted the sampled variants. The Effect Sizes on the Y axis and the Allele Frequncy on the X Axis
+# 1 Breast cancer
+```{r}
+cancer_files <- list.files("~/genetic", pattern = "\\.gz", full.names = TRUE)
+#Read the Prostate Cancer
+breast_cancer_raw <- bigreadr::fread2(cancer_files[1])
+#sample 100000 observations
+sample_size <- sample(nrow(breast_cancer_raw), 1000000, replace = T)
+breast_cancer_filtered <- breast_cancer_raw[sample_size,]
+
+variant_class <- c("missense", "pLoF","synonymous")
+breast_cancer_filtered <- breast_cancer_filtered%>%
+  filter(annotation%in%variant_class)
+
+#flip allele frequences
+breast_cancer_filtered <- breast_cancer_filtered %>%
+  mutate(correct_AF = ifelse(AF >=0.5, 1-AF, AF))
+breast_cancer_filtered$annotation <- as.factor(breast_cancer_filtered$annotation)
+
+
+gg <- ggplot(breast_cancer_filtered, aes(x=correct_AF, y=BETA, color = annotation) ) 
+gg <- gg + geom_point()
+gg <- gg + xlab("AF") + ylab("BETA") +ggtitle("Scatter plot of MAF and effect size for Breast Cancer") + theme_bw()
+gg <- gg + facet_grid(. ~ annotation)
+print(gg)
+```
+
+#  2d Density Plots
+
+Because of the many data points on the graph, visualising the patterns is difficult, here, i attempt to visialise the relationship in 2D Density plot. 
+
+```{r}
+#sample 100000 observations
+sample_size <- sample(nrow(breast_cancer_raw), 1000000, replace = T)
+breast_cancer_filtered <- breast_cancer_raw[sample_size,]
+
+variant_class <- c("missense", "pLoF", "synonymous")
+
+#flip allele frequences
+breast_cancer_filtered <- breast_cancer_filtered %>%
+  mutate(correct_AF = ifelse(AF >=0.5, 1-AF, AF))
+breast_cancer_filtered$annotation <- as.factor(breast_cancer_filtered$annotation)
+breast_cancer_filtered <- breast_cancer_filtered%>%
+  dplyr::filter(annotation%in%variant_class,
+                Pvalue<0.05)%>%
+  dplyr::mutate(N = n_cases+n_controls)
+breast_cancer_filtered <- breast_cancer_filtered %>%
+  dplyr::select(c(3:4,5,13,37,27,38))
+  
+#rename columns
+colnames(breast_cancer_filtered) = c("rsID","Gene","Analysis", "trait","freq","A1_beta","N")
+#convert to data table
+breast_cancer_filtered <- as.data.table(breast_cancer_filtered)
+#run trumpet plot
+plot_trumpets(dataset = breast_cancer_filtered, calculate_power = TRUE,show_power_curves= TRUE, N = 5e+05, alpha = 5e-8, threshold = 0.8, analysis_color_palette = c("#018571", "#a6611a","#7CAE00", "#619CFF"))+
+  theme_bw()+
+  facet_grid(. ~ Analysis)
+  
+```
+To obtain powercurves, the following parameters are changed right within the plottrumpt plots function.
+calculate_power and show_power_curves must be set to TRUE
+N = 5e+05, for UKBiobank i used 5000000 
+alpha = 5e-8, the gwas threshold
+threshold, the power threshold, default is 0.8,
+```{r}
+#run trumpet plot
+plot_trumpets(dataset = breast_cancer_filtered, calculate_power = TRUE,show_power_curves= TRUE, N = 5e+05, alpha = 5e-8, threshold = 0.5, analysis_color_palette = c("#018571", "#a6611a","#7CAE00", "#619CFF"))+
+  theme_bw()+
+  facet_grid(. ~ Analysis)
+  
+```
+
+
+```{r}
+#run trumpet plot
+plot_trumpets(dataset = breast_cancer_filtered, calculate_power = TRUE,show_power_curves= TRUE, N = 5e+05, alpha = 5e-8, threshold = 0.9, analysis_color_palette = c("#018571", "#a6611a","#7CAE00", "#619CFF"))+
+  theme_bw()+
+  facet_grid(. ~ Analysis)
+```
+

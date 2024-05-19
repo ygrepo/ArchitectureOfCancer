@@ -518,3 +518,112 @@ get_pval_category_adj_pval_scatter_plot <- function(df,
 
   return(pt)
 }
+
+
+get_polyphen_score_genebass_pvalue <- function(df,
+                                               title_txt,
+                                               alpha = 1,
+                                               title_font_size = 24,
+                                               x_y_font_size = 24,
+                                               legend_title_font_size = 14,
+                                               legend_text_font_size = 8,
+                                               stats_font_size = 6,
+                                               regression_line_flag = FALSE) {
+  pt <- df %>%
+    ggplot2::ggplot(aes(
+      x = polyphen_score,
+      y = Log10PVal,
+    )) +
+    geom_point(
+      aes(
+        color = BETA,
+        size = LOGAF
+      ),
+      alpha = alpha,
+      shape = 16
+    ) +
+    labs(
+      x = "Polyphen Score",
+      y = "-log10(PValue)",
+      size = "LOGAF",
+      title = title_txt
+    )
+
+  if (regression_line_flag) {
+    pt <- pt + ggplot2::geom_smooth(
+      method = "lm",
+      se = FALSE,
+      fullrange = TRUE,
+      formula = y ~ x,
+      linetype = "dashed",
+      colour = "red"
+    )
+  }
+
+  pt <- pt + geom_hline(
+    yintercept = -log10(0.05),
+    linetype = "dashed"
+  ) +
+    cowplot::theme_cowplot() +
+    theme(
+      plot.title = element_text(
+        color = "black",
+        size = title_font_size,
+        face = "bold", 
+        hjust = 0.5
+      ),
+      axis.title.x = element_text(size = x_y_font_size, face = "bold"),
+      axis.title.y = element_text(size = x_y_font_size, face = "bold"),
+      panel.grid.major = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.background = element_blank(),
+      axis.line = element_line(colour = "black"),
+      legend.text = element_text(size = legend_text_font_size),
+      legend.title = element_text(face = "bold", size = legend_title_font_size)
+    ) +
+    scale_x_continuous(
+      breaks = c(seq(0, 1.1, 0.2)),
+      limits = c(0, 1.1)
+    ) +
+    scale_y_continuous(
+      breaks = c(seq(0, 2.1, 0.2)),
+      limits = c(0, 2.1)
+    ) +
+    scale_color_gradient2(
+      low = "#bdbdbd",
+      mid = "#e7e1ef",
+      high = "#636363",
+      name = "LOGAF"
+    ) +
+    scale_color_gradient2(
+      low = "#c994c7",
+      mid = "#e7e1ef",
+      high = "#dd1c77",
+      name = "BETA"
+    )
+
+  pt <- pt + ggpubr::stat_cor(
+    method = "spearman",
+    cor.coef.name = "R",
+    size = stats_font_size,
+    label.x = 0.6,
+    label.y = 1,
+    r.accuracy = 0.01,
+    p.accuracy = 0.01
+  )
+  
+  var_label_col <- "variantIdSign"
+  pt <- pt + geom_text_repel(
+    data = df,
+    aes(
+      x = polyphen_score,
+      y = Log10PVal,
+      label = .data[[var_label_col]]
+    ),
+    box.padding = .6,
+    size = 6,
+    max.overlaps = 10
+  )
+
+  return(pt)
+}
