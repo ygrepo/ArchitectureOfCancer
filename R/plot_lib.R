@@ -569,7 +569,7 @@ get_polyphen_score_genebass_pvalue <- function(df,
       plot.title = element_text(
         color = "black",
         size = title_font_size,
-        face = "bold", 
+        face = "bold",
         hjust = 0.5
       ),
       axis.title.x = element_text(size = x_y_font_size, face = "bold"),
@@ -611,7 +611,7 @@ get_polyphen_score_genebass_pvalue <- function(df,
     r.accuracy = 0.01,
     p.accuracy = 0.01
   )
-  
+
   var_label_col <- "variantIdSign"
   pt <- pt + geom_text_repel(
     data = df,
